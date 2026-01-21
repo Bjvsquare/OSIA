@@ -1,0 +1,1817 @@
+{
+  "manifest_version": "0.1",
+  "generated_at": "2026-01-12",
+  "timezone": "Africa/Johannesburg",
+  "consent_domains": [
+    "account",
+    "personal_twin",
+    "relational_connect",
+    "team_org",
+    "research_validation",
+    "product_analytics"
+  ],
+  "sensitivity_levels": [
+    "low",
+    "medium",
+    "high"
+  ],
+  "layers_reference": [
+    {
+      "layer": 1,
+      "name": "L1"
+    },
+    {
+      "layer": 2,
+      "name": "L2"
+    },
+    {
+      "layer": 3,
+      "name": "L3"
+    },
+    {
+      "layer": 4,
+      "name": "L4"
+    },
+    {
+      "layer": 5,
+      "name": "L5"
+    },
+    {
+      "layer": 6,
+      "name": "L6"
+    },
+    {
+      "layer": 7,
+      "name": "L7"
+    },
+    {
+      "layer": 8,
+      "name": "L8"
+    },
+    {
+      "layer": 9,
+      "name": "L9"
+    },
+    {
+      "layer": 10,
+      "name": "L10"
+    },
+    {
+      "layer": 11,
+      "name": "L11"
+    },
+    {
+      "layer": 12,
+      "name": "L12"
+    },
+    {
+      "layer": 13,
+      "name": "L13"
+    },
+    {
+      "layer": 14,
+      "name": "L14"
+    },
+    {
+      "layer": 15,
+      "name": "L15"
+    }
+  ],
+  "answer_types": {
+    "consent_toggle": {
+      "value_schema": {
+        "type": "boolean"
+      },
+      "notes": [
+        "No pre-checked consent toggles."
+      ]
+    },
+    "single_select": {
+      "value_schema": {
+        "type": "string"
+      },
+      "requires": [
+        "enum_ref"
+      ]
+    },
+    "multi_select": {
+      "value_schema": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "requires": [
+        "enum_ref"
+      ],
+      "constraints": {
+        "min_select": 1,
+        "max_select": 99
+      }
+    },
+    "likert_1_5": {
+      "value_schema": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 5
+      }
+    },
+    "short_text": {
+      "value_schema": {
+        "type": "string"
+      },
+      "constraints": {
+        "min_chars": 1,
+        "max_chars": 280
+      }
+    },
+    "long_text": {
+      "value_schema": {
+        "type": "string"
+      },
+      "constraints": {
+        "min_chars": 1,
+        "max_chars": 2000
+      }
+    },
+    "word_list_n": {
+      "value_schema": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "constraints": {
+        "exact_items": 5,
+        "max_token_chars": 24,
+        "split_on": [
+          "space",
+          "comma",
+          "semicolon"
+        ],
+        "allow_hyphen": true
+      },
+      "derived": [
+        "word_count",
+        "clean_tokens"
+      ]
+    },
+    "text_list": {
+      "value_schema": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "constraints": {
+        "min_items": 1,
+        "max_items": 10,
+        "max_item_chars": 180
+      }
+    },
+    "tag_select": {
+      "value_schema": {
+        "type": "object",
+        "properties": {
+          "tag": {
+            "type": "string"
+          },
+          "other_text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tag"
+        ]
+      },
+      "constraints": {
+        "other_requires_text": true,
+        "other_min_chars": 2,
+        "other_max_chars": 140
+      }
+    }
+  },
+  "global_validation_rules": [
+    "Consent toggles must never be pre-checked.",
+    "If option 'Other' is selected, 'other_text' becomes required (2..140 chars).",
+    "Free-text should be stored in raw and normalized forms (trim + collapse whitespace).",
+    "Profanity/abuse should not block submission, but should flag the response for safety review."
+  ],
+  "enums": {
+    "intent_primary_focus": [
+      "Self-clarity",
+      "Relationships",
+      "Team dynamics",
+      "Decision-making",
+      "Stress & energy",
+      "Growth edge",
+      "Other"
+    ],
+    "intent_value_target": [
+      "A mirror of me",
+      "A mirror of us",
+      "A mirror of our team"
+    ],
+    "consent_relational_state": [
+      "Not now",
+      "Maybe later",
+      "Yes"
+    ],
+    "consent_team_state": [
+      "Not applicable",
+      "Not now",
+      "Yes"
+    ],
+    "alignment_hypothesis_ack": [
+      "Yes",
+      "I have questions"
+    ],
+    "recovery_methods": [
+      "Solitude",
+      "People",
+      "Nature",
+      "Movement",
+      "Deep focus",
+      "Play",
+      "Sleep",
+      "Other"
+    ],
+    "processing_complexity_response": [
+      "Gather & integrate",
+      "Decide fast & iterate",
+      "Ask people",
+      "Map options",
+      "Follow intuition",
+      "Avoid until forced",
+      "Other"
+    ],
+    "stress_default_move": [
+      "Over-function",
+      "Shut down",
+      "Push harder",
+      "Withdraw",
+      "Control details",
+      "People-please",
+      "Get blunt",
+      "Other"
+    ],
+    "rel_collaboration_role": [
+      "Initiator",
+      "Responder",
+      "Context-dependent"
+    ],
+    "rel_boundary_style": [
+      "Too porous",
+      "Clear",
+      "Too rigid",
+      "Context-dependent"
+    ],
+    "deep_context_domain": [
+      "Work",
+      "Home",
+      "Relationship",
+      "Team",
+      "Other"
+    ],
+    "deep_next_move": [
+      "Act",
+      "Avoid",
+      "Ask",
+      "Withdraw",
+      "Repair",
+      "Rest",
+      "Other"
+    ],
+    "pattern_user_flag": [
+      "One-off",
+      "Not sure",
+      "Recurring"
+    ],
+    "journey_focus_area": [
+      "Stress & recovery",
+      "Decision-making & follow-through",
+      "Boundaries & closeness",
+      "Communication under pressure"
+    ],
+    "rel_link_type": [
+      "Partner",
+      "Friend",
+      "Colleague",
+      "Manager",
+      "Direct report",
+      "Other"
+    ],
+    "rel_interaction_freq": [
+      "Daily",
+      "Weekly",
+      "Ad hoc",
+      "High-intensity bursts"
+    ],
+    "rel_conflict_default": [
+      "Pursue",
+      "Withdraw",
+      "Explain",
+      "Go silent",
+      "Get blunt",
+      "Seek repair",
+      "Other"
+    ],
+    "rel_support_need": [
+      "Space",
+      "Reassurance",
+      "Clarity",
+      "Practical help",
+      "Gentle check-in",
+      "Time",
+      "Other"
+    ],
+    "rel_repair_style": [
+      "Talk now",
+      "Pause then return",
+      "Written first",
+      "Physical reset first",
+      "Other"
+    ],
+    "team_session_mode": [
+      "Facilitated",
+      "Self-serve"
+    ],
+    "team_pace": [
+      "Too fast",
+      "Good",
+      "Too slow"
+    ],
+    "team_friction_type": [
+      "Misalignment",
+      "Ownership",
+      "Conflict avoidance",
+      "Overload",
+      "Decision latency",
+      "Communication gaps",
+      "Other"
+    ],
+    "team_pressure_tags": [
+      "Deadlines",
+      "Reorg",
+      "Growth",
+      "Unclear strategy",
+      "External volatility",
+      "Other"
+    ],
+    "integration_cadence": [
+      "Weekly",
+      "Fortnightly",
+      "Monthly",
+      "Only when I prompt it"
+    ],
+    "integration_time_pref": [
+      "Morning",
+      "Midday",
+      "Evening",
+      "Weekend"
+    ],
+    "integration_focus_areas": [
+      "Energy",
+      "Stress",
+      "Decisions",
+      "Boundaries",
+      "Communication",
+      "Relationship dynamic",
+      "Team"
+    ],
+    "integration_nudge_style": [
+      "None",
+      "Gentle reminder",
+      "Ask me one question",
+      "Show me one insight"
+    ],
+    "renewal_context_change": [
+      "Role",
+      "Relationship",
+      "Health/energy",
+      "Team",
+      "None"
+    ],
+    "renewal_refresh_areas": [
+      "Energy",
+      "Stress",
+      "Decisions",
+      "Boundaries",
+      "Other"
+    ],
+    "data_user_action": [
+      "Pause",
+      "Export",
+      "Delete",
+      "Not now"
+    ]
+  },
+  "stages": [
+    {
+      "stage_id": "ORIENTATION_CONSENT",
+      "order": 1,
+      "title": "Orientation & Consent",
+      "requires": [],
+      "notes": [
+        "Must complete before any modelling."
+      ]
+    },
+    {
+      "stage_id": "BLUEPRINT",
+      "order": 2,
+      "title": "Personal Blueprint Foundation",
+      "requires": [
+        {
+          "type": "stage_completed",
+          "stage_id": "ORIENTATION_CONSENT"
+        },
+        {
+          "type": "signal",
+          "key": "consent.personal_twin",
+          "op": "==",
+          "value": true
+        }
+      ]
+    },
+    {
+      "stage_id": "DEEPENING",
+      "order": 3,
+      "title": "Pattern Discovery & Deepening",
+      "requires": [
+        {
+          "type": "stage_completed",
+          "stage_id": "BLUEPRINT"
+        }
+      ]
+    },
+    {
+      "stage_id": "RELATIONAL_CONNECT",
+      "order": 4,
+      "title": "Relational Connect (Optional)",
+      "requires": [
+        {
+          "type": "stage_completed",
+          "stage_id": "BLUEPRINT"
+        },
+        {
+          "type": "signal",
+          "key": "consent.relational_state",
+          "op": "==",
+          "value": "Yes"
+        }
+      ],
+      "notes": [
+        "Mutual consent required for linking and shared views."
+      ]
+    },
+    {
+      "stage_id": "TEAM_CONTEXT",
+      "order": 5,
+      "title": "Team & Context (Optional / Org)",
+      "requires": [
+        {
+          "type": "signal",
+          "key": "consent.team_state",
+          "op": "==",
+          "value": "Yes"
+        }
+      ],
+      "notes": [
+        "Aggregate-only outputs; no individual exposures."
+      ]
+    },
+    {
+      "stage_id": "INTEGRATION_RITUALS",
+      "order": 6,
+      "title": "Integration & Rituals",
+      "requires": [
+        {
+          "type": "stage_completed",
+          "stage_id": "BLUEPRINT"
+        }
+      ]
+    },
+    {
+      "stage_id": "RENEWAL_EXIT",
+      "order": 7,
+      "title": "Renewal, Reframing & Exit",
+      "requires": [
+        {
+          "type": "stage_completed",
+          "stage_id": "ORIENTATION_CONSENT"
+        }
+      ],
+      "notes": [
+        "Available any time after Stage 1."
+      ]
+    }
+  ],
+  "sets": {
+    "ORIENT_CORE": {
+      "stage_id": "ORIENTATION_CONSENT",
+      "question_ids": [
+        "ORIENT.01",
+        "ORIENT.02",
+        "ORIENT.03",
+        "ORIENT.04",
+        "ORIENT.05",
+        "ORIENT.06",
+        "ORIENT.07",
+        "ORIENT.08"
+      ]
+    },
+    "BLUEPRINT_LEXICAL": {
+      "stage_id": "BLUEPRINT",
+      "question_ids": [
+        "BLUEPRINT.01",
+        "BLUEPRINT.02",
+        "BLUEPRINT.03"
+      ]
+    },
+    "BLUEPRINT_ENERGY_PROCESSING": {
+      "stage_id": "BLUEPRINT",
+      "question_ids": [
+        "BLUEPRINT.04",
+        "BLUEPRINT.05",
+        "BLUEPRINT.06",
+        "BLUEPRINT.07",
+        "BLUEPRINT.08"
+      ]
+    },
+    "BLUEPRINT_STRESS_RELATIONAL_EDGE": {
+      "stage_id": "BLUEPRINT",
+      "question_ids": [
+        "BLUEPRINT.09",
+        "BLUEPRINT.10",
+        "BLUEPRINT.11",
+        "BLUEPRINT.12",
+        "BLUEPRINT.13",
+        "BLUEPRINT.15"
+      ]
+    },
+    "BLUEPRINT_OPTIONAL_NARRATIVE": {
+      "stage_id": "BLUEPRINT",
+      "question_ids": [
+        "BLUEPRINT.14"
+      ]
+    },
+    "DEEPENING_FOCUS_PICK": {
+      "stage_id": "DEEPENING",
+      "question_ids": [
+        "DEEP.01"
+      ]
+    },
+    "DEEPENING_CHECKIN": {
+      "stage_id": "DEEPENING",
+      "repeatable": true,
+      "question_ids": [
+        "DEEP.02",
+        "DEEP.03",
+        "DEEP.04",
+        "DEEP.05",
+        "DEEP.06",
+        "DEEP.07",
+        "DEEP.08",
+        "DEEP.09",
+        "DEEP.10"
+      ]
+    },
+    "REL_SETUP": {
+      "stage_id": "RELATIONAL_CONNECT",
+      "question_ids": [
+        "REL.01",
+        "REL.02",
+        "REL.03"
+      ]
+    },
+    "REL_CORE": {
+      "stage_id": "RELATIONAL_CONNECT",
+      "question_ids": [
+        "REL.04",
+        "REL.05",
+        "REL.06",
+        "REL.07",
+        "REL.08",
+        "REL.09",
+        "REL.10"
+      ]
+    },
+    "TEAM_SETUP": {
+      "stage_id": "TEAM_CONTEXT",
+      "question_ids": [
+        "TEAM.01",
+        "TEAM.02",
+        "TEAM.03"
+      ]
+    },
+    "TEAM_CHECKIN": {
+      "stage_id": "TEAM_CONTEXT",
+      "repeatable": true,
+      "question_ids": [
+        "TEAM.04",
+        "TEAM.05",
+        "TEAM.06",
+        "TEAM.07",
+        "TEAM.08",
+        "TEAM.09"
+      ]
+    },
+    "INTEGRATION_PREFS": {
+      "stage_id": "INTEGRATION_RITUALS",
+      "question_ids": [
+        "INT.01",
+        "INT.02",
+        "INT.03",
+        "INT.04",
+        "INT.05"
+      ]
+    },
+    "RENEWAL_REVIEW": {
+      "stage_id": "RENEWAL_EXIT",
+      "question_ids": [
+        "EXIT.01",
+        "EXIT.02",
+        "EXIT.03",
+        "EXIT.04",
+        "EXIT.05"
+      ]
+    }
+  },
+  "questions": {
+    "ORIENT.01": {
+      "question_id": "ORIENT.01",
+      "stage_id": "ORIENTATION_CONSENT",
+      "set_id": "ORIENT_CORE",
+      "prompt": "What brings you to OSIA right now? (Choose up to 2)",
+      "type": "multi_select",
+      "required": true,
+      "enum_ref": "intent_primary_focus",
+      "constraints": {
+        "min_select": 1,
+        "max_select": 2
+      },
+      "consent_domain": "account",
+      "sensitivity": "low",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "intent.primary_focus"
+      ]
+    },
+    "ORIENT.02": {
+      "question_id": "ORIENT.02",
+      "stage_id": "ORIENTATION_CONSENT",
+      "set_id": "ORIENT_CORE",
+      "prompt": "Where do you want the most immediate value?",
+      "type": "single_select",
+      "required": true,
+      "enum_ref": "intent_value_target",
+      "consent_domain": "account",
+      "sensitivity": "low",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "intent.value_target"
+      ]
+    },
+    "ORIENT.03": {
+      "question_id": "ORIENT.03",
+      "stage_id": "ORIENTATION_CONSENT",
+      "set_id": "ORIENT_CORE",
+      "prompt": "Any topics you want OSIA to avoid?",
+      "type": "long_text",
+      "required": false,
+      "constraints": {
+        "max_chars": 1000
+      },
+      "consent_domain": "personal_twin",
+      "sensitivity": "high",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "safety.avoid_topics_text"
+      ]
+    },
+    "ORIENT.04": {
+      "question_id": "ORIENT.04",
+      "stage_id": "ORIENTATION_CONSENT",
+      "set_id": "ORIENT_CORE",
+      "prompt": "Consent: Personal insights + Digital Twin",
+      "type": "consent_toggle",
+      "required": true,
+      "consent_domain": "personal_twin",
+      "sensitivity": "high",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "consent.personal_twin"
+      ]
+    },
+    "ORIENT.05": {
+      "question_id": "ORIENT.05",
+      "stage_id": "ORIENTATION_CONSENT",
+      "set_id": "ORIENT_CORE",
+      "prompt": "Consent: Relational Connect",
+      "type": "single_select",
+      "required": true,
+      "enum_ref": "consent_relational_state",
+      "consent_domain": "relational_connect",
+      "sensitivity": "high",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "consent.relational_state"
+      ]
+    },
+    "ORIENT.06": {
+      "question_id": "ORIENT.06",
+      "stage_id": "ORIENTATION_CONSENT",
+      "set_id": "ORIENT_CORE",
+      "prompt": "Consent: Team/organisation aggregate views",
+      "type": "single_select",
+      "required": true,
+      "enum_ref": "consent_team_state",
+      "consent_domain": "team_org",
+      "sensitivity": "high",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "consent.team_state"
+      ]
+    },
+    "ORIENT.07": {
+      "question_id": "ORIENT.07",
+      "stage_id": "ORIENTATION_CONSENT",
+      "set_id": "ORIENT_CORE",
+      "prompt": "Consent: Research & validation participation (optional)",
+      "type": "consent_toggle",
+      "required": false,
+      "consent_domain": "research_validation",
+      "sensitivity": "high",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "consent.research"
+      ]
+    },
+    "ORIENT.08": {
+      "question_id": "ORIENT.08",
+      "stage_id": "ORIENTATION_CONSENT",
+      "set_id": "ORIENT_CORE",
+      "prompt": "Confirm: OSIA offers hypotheses, not verdicts",
+      "type": "single_select",
+      "required": true,
+      "enum_ref": "alignment_hypothesis_ack",
+      "consent_domain": "account",
+      "sensitivity": "low",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "alignment.hypothesis_ack"
+      ]
+    },
+    "BLUEPRINT.01": {
+      "question_id": "BLUEPRINT.01",
+      "stage_id": "BLUEPRINT",
+      "set_id": "BLUEPRINT_LEXICAL",
+      "prompt": "In five words, describe you at your best",
+      "type": "word_list_n",
+      "required": true,
+      "constraints": {
+        "exact_items": 5
+      },
+      "consent_domain": "personal_twin",
+      "sensitivity": "medium",
+      "visibility_rule": "consent.personal_twin == true",
+      "maps_to_layers": [
+        1,
+        2,
+        10
+      ],
+      "emits_signals": [
+        "lex.self_best"
+      ],
+      "confidence_marker": true
+    },
+    "BLUEPRINT.02": {
+      "question_id": "BLUEPRINT.02",
+      "stage_id": "BLUEPRINT",
+      "set_id": "BLUEPRINT_LEXICAL",
+      "prompt": "In five words, describe you under pressure",
+      "type": "word_list_n",
+      "required": true,
+      "constraints": {
+        "exact_items": 5
+      },
+      "consent_domain": "personal_twin",
+      "sensitivity": "medium",
+      "visibility_rule": "consent.personal_twin == true",
+      "maps_to_layers": [
+        6,
+        7,
+        10
+      ],
+      "emits_signals": [
+        "lex.self_stress"
+      ],
+      "confidence_marker": true
+    },
+    "BLUEPRINT.03": {
+      "question_id": "BLUEPRINT.03",
+      "stage_id": "BLUEPRINT",
+      "set_id": "BLUEPRINT_LEXICAL",
+      "prompt": "In five words, how would someone you trust describe you when stressed?",
+      "type": "word_list_n",
+      "required": false,
+      "constraints": {
+        "exact_items": 5
+      },
+      "consent_domain": "personal_twin",
+      "sensitivity": "medium",
+      "visibility_rule": "consent.personal_twin == true",
+      "maps_to_layers": [
+        6,
+        7,
+        10
+      ],
+      "emits_signals": [
+        "lex.trusted_other_stress"
+      ]
+    },
+    "BLUEPRINT.04": {
+      "question_id": "BLUEPRINT.04",
+      "stage_id": "BLUEPRINT",
+      "set_id": "BLUEPRINT_ENERGY_PROCESSING",
+      "prompt": "Three situations that energise you (recent + real)",
+      "type": "text_list",
+      "required": true,
+      "constraints": {
+        "min_items": 3,
+        "max_items": 3,
+        "max_item_chars": 180
+      },
+      "consent_domain": "personal_twin",
+      "sensitivity": "medium",
+      "visibility_rule": "consent.personal_twin == true",
+      "maps_to_layers": [
+        2
+      ],
+      "emits_signals": [
+        "energy.energizers"
+      ],
+      "confidence_marker": true
+    },
+    "BLUEPRINT.05": {
+      "question_id": "BLUEPRINT.05",
+      "stage_id": "BLUEPRINT",
+      "set_id": "BLUEPRINT_ENERGY_PROCESSING",
+      "prompt": "Three situations that drain you",
+      "type": "text_list",
+      "required": true,
+      "constraints": {
+        "min_items": 3,
+        "max_items": 3,
+        "max_item_chars": 180
+      },
+      "consent_domain": "personal_twin",
+      "sensitivity": "medium",
+      "visibility_rule": "consent.personal_twin == true",
+      "maps_to_layers": [
+        2,
+        6
+      ],
+      "emits_signals": [
+        "energy.drainers"
+      ],
+      "confidence_marker": true
+    },
+    "BLUEPRINT.06": {
+      "question_id": "BLUEPRINT.06",
+      "stage_id": "BLUEPRINT",
+      "set_id": "BLUEPRINT_ENERGY_PROCESSING",
+      "prompt": "Your most reliable way to recover energy is… (Choose up to 2)",
+      "type": "multi_select",
+      "required": true,
+      "enum_ref": "recovery_methods",
+      "constraints": {
+        "min_select": 1,
+        "max_select": 2
+      },
+      "consent_domain": "personal_twin",
+      "sensitivity": "low",
+      "visibility_rule": "consent.personal_twin == true",
+      "maps_to_layers": [
+        2
+      ],
+      "emits_signals": [
+        "recovery.methods"
+      ],
+      "confidence_marker": true
+    },
+    "BLUEPRINT.07": {
+      "question_id": "BLUEPRINT.07",
+      "stage_id": "BLUEPRINT",
+      "set_id": "BLUEPRINT_ENERGY_PROCESSING",
+      "prompt": "When facing complexity, I tend to… (Choose 1–2)",
+      "type": "multi_select",
+      "required": true,
+      "enum_ref": "processing_complexity_response",
+      "constraints": {
+        "min_select": 1,
+        "max_select": 2
+      },
+      "consent_domain": "personal_twin",
+      "sensitivity": "low",
+      "visibility_rule": "consent.personal_twin == true",
+      "maps_to_layers": [
+        3,
+        4
+      ],
+      "emits_signals": [
+        "processing.complexity_response"
+      ],
+      "confidence_marker": true
+    },
+    "BLUEPRINT.08": {
+      "question_id": "BLUEPRINT.08",
+      "stage_id": "BLUEPRINT",
+      "set_id": "BLUEPRINT_ENERGY_PROCESSING",
+      "prompt": "Ambiguity feels… (1 = energising, 5 = draining)",
+      "type": "likert_1_5",
+      "required": true,
+      "consent_domain": "personal_twin",
+      "sensitivity": "low",
+      "visibility_rule": "consent.personal_twin == true",
+      "maps_to_layers": [
+        3
+      ],
+      "emits_signals": [
+        "processing.ambiguity_tolerance"
+      ],
+      "confidence_marker": true
+    },
+    "BLUEPRINT.09": {
+      "question_id": "BLUEPRINT.09",
+      "stage_id": "BLUEPRINT",
+      "set_id": "BLUEPRINT_STRESS_RELATIONAL_EDGE",
+      "prompt": "Under pressure, what’s your most common “default move”?",
+      "type": "single_select",
+      "required": true,
+      "enum_ref": "stress_default_move",
+      "consent_domain": "personal_twin",
+      "sensitivity": "medium",
+      "visibility_rule": "consent.personal_twin == true",
+      "maps_to_layers": [
+        6,
+        8
+      ],
+      "emits_signals": [
+        "stress.default_move"
+      ],
+      "confidence_marker": true
+    },
+    "BLUEPRINT.10": {
+      "question_id": "BLUEPRINT.10",
+      "stage_id": "BLUEPRINT",
+      "set_id": "BLUEPRINT_STRESS_RELATIONAL_EDGE",
+      "prompt": "What typically helps you return to baseline?",
+      "type": "short_text",
+      "required": true,
+      "constraints": {
+        "max_chars": 280
+      },
+      "consent_domain": "personal_twin",
+      "sensitivity": "medium",
+      "visibility_rule": "consent.personal_twin == true",
+      "maps_to_layers": [
+        2,
+        6
+      ],
+      "emits_signals": [
+        "stress.return_to_baseline_text"
+      ]
+    },
+    "BLUEPRINT.11": {
+      "question_id": "BLUEPRINT.11",
+      "stage_id": "BLUEPRINT",
+      "set_id": "BLUEPRINT_STRESS_RELATIONAL_EDGE",
+      "prompt": "In collaboration, I’m usually the…",
+      "type": "single_select",
+      "required": true,
+      "enum_ref": "rel_collaboration_role",
+      "consent_domain": "personal_twin",
+      "sensitivity": "low",
+      "visibility_rule": "consent.personal_twin == true",
+      "maps_to_layers": [
+        12,
+        8
+      ],
+      "emits_signals": [
+        "rel.collaboration_role"
+      ],
+      "confidence_marker": true
+    },
+    "BLUEPRINT.12": {
+      "question_id": "BLUEPRINT.12",
+      "stage_id": "BLUEPRINT",
+      "set_id": "BLUEPRINT_STRESS_RELATIONAL_EDGE",
+      "prompt": "Boundaries tend to be…",
+      "type": "single_select",
+      "required": true,
+      "enum_ref": "rel_boundary_style",
+      "consent_domain": "personal_twin",
+      "sensitivity": "medium",
+      "visibility_rule": "consent.personal_twin == true",
+      "maps_to_layers": [
+        10
+      ],
+      "emits_signals": [
+        "rel.boundary_style"
+      ],
+      "confidence_marker": true
+    },
+    "BLUEPRINT.13": {
+      "question_id": "BLUEPRINT.13",
+      "stage_id": "BLUEPRINT",
+      "set_id": "BLUEPRINT_STRESS_RELATIONAL_EDGE",
+      "prompt": "What’s live for you right now—one tension, decision, or growth frontier?",
+      "type": "long_text",
+      "required": true,
+      "constraints": {
+        "max_chars": 1200
+      },
+      "consent_domain": "personal_twin",
+      "sensitivity": "high",
+      "visibility_rule": "consent.personal_twin == true",
+      "maps_to_layers": [
+        15
+      ],
+      "emits_signals": [
+        "edge.current_text"
+      ]
+    },
+    "BLUEPRINT.14": {
+      "question_id": "BLUEPRINT.14",
+      "stage_id": "BLUEPRINT",
+      "set_id": "BLUEPRINT_OPTIONAL_NARRATIVE",
+      "prompt": "A recent moment you felt “in your element”—what was happening and why it worked",
+      "type": "long_text",
+      "required": false,
+      "constraints": {
+        "min_chars": 300,
+        "max_chars": 2000
+      },
+      "consent_domain": "personal_twin",
+      "sensitivity": "high",
+      "visibility_rule": "consent.personal_twin == true",
+      "maps_to_layers": [
+        2,
+        3,
+        5,
+        8
+      ],
+      "emits_signals": [
+        "narr.in_element"
+      ]
+    },
+    "BLUEPRINT.15": {
+      "question_id": "BLUEPRINT.15",
+      "stage_id": "BLUEPRINT",
+      "set_id": "BLUEPRINT_STRESS_RELATIONAL_EDGE",
+      "prompt": "What do you most want to protect or preserve in your life/work right now?",
+      "type": "short_text",
+      "required": false,
+      "constraints": {
+        "max_chars": 280
+      },
+      "consent_domain": "personal_twin",
+      "sensitivity": "medium",
+      "visibility_rule": "consent.personal_twin == true",
+      "maps_to_layers": [
+        5,
+        13
+      ],
+      "emits_signals": [
+        "motivation.protect_text"
+      ]
+    },
+    "DEEP.01": {
+      "question_id": "DEEP.01",
+      "stage_id": "DEEPENING",
+      "set_id": "DEEPENING_FOCUS_PICK",
+      "prompt": "Pick a Focus Journey",
+      "type": "single_select",
+      "required": true,
+      "enum_ref": "journey_focus_area",
+      "consent_domain": "personal_twin",
+      "sensitivity": "low",
+      "visibility_rule": "stage_completed.BLUEPRINT == true",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "journey.focus_area"
+      ]
+    },
+    "DEEP.02": {
+      "question_id": "DEEP.02",
+      "stage_id": "DEEPENING",
+      "set_id": "DEEPENING_CHECKIN",
+      "prompt": "Energy right now",
+      "type": "likert_1_5",
+      "required": true,
+      "consent_domain": "personal_twin",
+      "sensitivity": "low",
+      "visibility_rule": "stage_completed.BLUEPRINT == true",
+      "maps_to_layers": [
+        2
+      ],
+      "emits_signals": [
+        "state.energy"
+      ]
+    },
+    "DEEP.03": {
+      "question_id": "DEEP.03",
+      "stage_id": "DEEPENING",
+      "set_id": "DEEPENING_CHECKIN",
+      "prompt": "Pressure/stress right now",
+      "type": "likert_1_5",
+      "required": true,
+      "consent_domain": "personal_twin",
+      "sensitivity": "medium",
+      "visibility_rule": "stage_completed.BLUEPRINT == true",
+      "maps_to_layers": [
+        6
+      ],
+      "emits_signals": [
+        "state.stress"
+      ]
+    },
+    "DEEP.04": {
+      "question_id": "DEEP.04",
+      "stage_id": "DEEPENING",
+      "set_id": "DEEPENING_CHECKIN",
+      "prompt": "What context are you in?",
+      "type": "single_select",
+      "required": true,
+      "enum_ref": "deep_context_domain",
+      "consent_domain": "personal_twin",
+      "sensitivity": "low",
+      "visibility_rule": "stage_completed.BLUEPRINT == true",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "context.domain"
+      ]
+    },
+    "DEEP.05": {
+      "question_id": "DEEP.05",
+      "stage_id": "DEEPENING",
+      "set_id": "DEEPENING_CHECKIN",
+      "prompt": "What triggered the shift (if any)?",
+      "type": "tag_select",
+      "required": false,
+      "constraints": {
+        "enum_ref": "team_pressure_tags",
+        "other_requires_text": true
+      },
+      "consent_domain": "personal_twin",
+      "sensitivity": "medium",
+      "visibility_rule": "stage_completed.BLUEPRINT == true",
+      "maps_to_layers": [
+        6
+      ],
+      "emits_signals": [
+        "stress.trigger_tag"
+      ]
+    },
+    "DEEP.06": {
+      "question_id": "DEEP.06",
+      "stage_id": "DEEPENING",
+      "set_id": "DEEPENING_CHECKIN",
+      "prompt": "What did you do next?",
+      "type": "single_select",
+      "required": true,
+      "enum_ref": "deep_next_move",
+      "consent_domain": "personal_twin",
+      "sensitivity": "medium",
+      "visibility_rule": "stage_completed.BLUEPRINT == true",
+      "maps_to_layers": [
+        6,
+        8,
+        10
+      ],
+      "emits_signals": [
+        "response.next_move"
+      ]
+    },
+    "DEEP.07": {
+      "question_id": "DEEP.07",
+      "stage_id": "DEEPENING",
+      "set_id": "DEEPENING_CHECKIN",
+      "prompt": "What helped (even slightly)?",
+      "type": "short_text",
+      "required": false,
+      "constraints": {
+        "max_chars": 280
+      },
+      "consent_domain": "personal_twin",
+      "sensitivity": "medium",
+      "visibility_rule": "stage_completed.BLUEPRINT == true",
+      "maps_to_layers": [
+        2,
+        6
+      ],
+      "emits_signals": [
+        "response.helped_text"
+      ]
+    },
+    "DEEP.08": {
+      "question_id": "DEEP.08",
+      "stage_id": "DEEPENING",
+      "set_id": "DEEPENING_CHECKIN",
+      "prompt": "Do you want OSIA to treat this as a one-off or possible recurring pattern?",
+      "type": "single_select",
+      "required": true,
+      "enum_ref": "pattern_user_flag",
+      "consent_domain": "personal_twin",
+      "sensitivity": "low",
+      "visibility_rule": "stage_completed.BLUEPRINT == true",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "pattern.user_flag"
+      ]
+    },
+    "DEEP.09": {
+      "question_id": "DEEP.09",
+      "stage_id": "DEEPENING",
+      "set_id": "DEEPENING_CHECKIN",
+      "prompt": "If this moment had a name, what would you call it? (2–4 words)",
+      "type": "short_text",
+      "required": false,
+      "constraints": {
+        "max_chars": 80
+      },
+      "consent_domain": "personal_twin",
+      "sensitivity": "low",
+      "visibility_rule": "stage_completed.BLUEPRINT == true",
+      "maps_to_layers": [
+        13,
+        15
+      ],
+      "emits_signals": [
+        "meaning.moment_name"
+      ]
+    },
+    "DEEP.10": {
+      "question_id": "DEEP.10",
+      "stage_id": "DEEPENING",
+      "set_id": "DEEPENING_CHECKIN",
+      "prompt": "What would “5% better” look like next time?",
+      "type": "short_text",
+      "required": false,
+      "constraints": {
+        "max_chars": 140
+      },
+      "consent_domain": "personal_twin",
+      "sensitivity": "low",
+      "visibility_rule": "stage_completed.BLUEPRINT == true",
+      "maps_to_layers": [
+        14,
+        15
+      ],
+      "emits_signals": [
+        "experiment.micro_next"
+      ]
+    },
+    "REL.01": {
+      "question_id": "REL.01",
+      "stage_id": "RELATIONAL_CONNECT",
+      "set_id": "REL_SETUP",
+      "prompt": "Who is this connection?",
+      "type": "single_select",
+      "required": true,
+      "enum_ref": "rel_link_type",
+      "consent_domain": "relational_connect",
+      "sensitivity": "medium",
+      "visibility_rule": "consent.relational_state == 'Yes'",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "rel.link_type"
+      ]
+    },
+    "REL.02": {
+      "question_id": "REL.02",
+      "stage_id": "RELATIONAL_CONNECT",
+      "set_id": "REL_SETUP",
+      "prompt": "How often do you interact?",
+      "type": "single_select",
+      "required": true,
+      "enum_ref": "rel_interaction_freq",
+      "consent_domain": "relational_connect",
+      "sensitivity": "low",
+      "visibility_rule": "consent.relational_state == 'Yes'",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "rel.interaction_freq"
+      ]
+    },
+    "REL.03": {
+      "question_id": "REL.03",
+      "stage_id": "RELATIONAL_CONNECT",
+      "set_id": "REL_SETUP",
+      "prompt": "Confirm mutual consent to link + share selected patterns",
+      "type": "consent_toggle",
+      "required": true,
+      "consent_domain": "relational_connect",
+      "sensitivity": "high",
+      "visibility_rule": "consent.relational_state == 'Yes'",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "rel.mutual_link_confirmed"
+      ]
+    },
+    "REL.04": {
+      "question_id": "REL.04",
+      "stage_id": "RELATIONAL_CONNECT",
+      "set_id": "REL_CORE",
+      "prompt": "When we disagree, I tend to…",
+      "type": "single_select",
+      "required": true,
+      "enum_ref": "rel_conflict_default",
+      "consent_domain": "relational_connect",
+      "sensitivity": "high",
+      "visibility_rule": "rel.mutual_link_confirmed == true",
+      "maps_to_layers": [
+        11,
+        9,
+        6
+      ],
+      "emits_signals": [
+        "rel.conflict_default"
+      ]
+    },
+    "REL.05": {
+      "question_id": "REL.05",
+      "stage_id": "RELATIONAL_CONNECT",
+      "set_id": "REL_CORE",
+      "prompt": "Add one sentence example (optional)",
+      "type": "short_text",
+      "required": false,
+      "constraints": {
+        "max_chars": 280
+      },
+      "consent_domain": "relational_connect",
+      "sensitivity": "high",
+      "visibility_rule": "rel.mutual_link_confirmed == true",
+      "maps_to_layers": [
+        11
+      ],
+      "emits_signals": [
+        "rel.conflict_example"
+      ]
+    },
+    "REL.06": {
+      "question_id": "REL.06",
+      "stage_id": "RELATIONAL_CONNECT",
+      "set_id": "REL_CORE",
+      "prompt": "When I’m stressed, what I usually need from you is… (Choose up to 2)",
+      "type": "multi_select",
+      "required": true,
+      "enum_ref": "rel_support_need",
+      "constraints": {
+        "min_select": 1,
+        "max_select": 2
+      },
+      "consent_domain": "relational_connect",
+      "sensitivity": "high",
+      "visibility_rule": "rel.mutual_link_confirmed == true",
+      "maps_to_layers": [
+        10,
+        11
+      ],
+      "emits_signals": [
+        "rel.support_need"
+      ]
+    },
+    "REL.07": {
+      "question_id": "REL.07",
+      "stage_id": "RELATIONAL_CONNECT",
+      "set_id": "REL_CORE",
+      "prompt": "What I value most about how we work/relate is…",
+      "type": "short_text",
+      "required": true,
+      "constraints": {
+        "max_chars": 280
+      },
+      "consent_domain": "relational_connect",
+      "sensitivity": "medium",
+      "visibility_rule": "rel.mutual_link_confirmed == true",
+      "maps_to_layers": [
+        11,
+        5
+      ],
+      "emits_signals": [
+        "rel.value_text"
+      ]
+    },
+    "REL.08": {
+      "question_id": "REL.08",
+      "stage_id": "RELATIONAL_CONNECT",
+      "set_id": "REL_CORE",
+      "prompt": "A recurring friction point tends to be…",
+      "type": "tag_select",
+      "required": false,
+      "constraints": {
+        "other_requires_text": true
+      },
+      "consent_domain": "relational_connect",
+      "sensitivity": "high",
+      "visibility_rule": "rel.mutual_link_confirmed == true",
+      "maps_to_layers": [
+        11
+      ],
+      "emits_signals": [
+        "rel.friction_tag"
+      ]
+    },
+    "REL.09": {
+      "question_id": "REL.09",
+      "stage_id": "RELATIONAL_CONNECT",
+      "set_id": "REL_CORE",
+      "prompt": "After tension, I usually prefer…",
+      "type": "single_select",
+      "required": true,
+      "enum_ref": "rel_repair_style",
+      "consent_domain": "relational_connect",
+      "sensitivity": "high",
+      "visibility_rule": "rel.mutual_link_confirmed == true",
+      "maps_to_layers": [
+        11,
+        10
+      ],
+      "emits_signals": [
+        "rel.repair_style"
+      ]
+    },
+    "REL.10": {
+      "question_id": "REL.10",
+      "stage_id": "RELATIONAL_CONNECT",
+      "set_id": "REL_CORE",
+      "prompt": "Describe one recent moment of friction: before → during → after",
+      "type": "long_text",
+      "required": false,
+      "constraints": {
+        "min_chars": 300,
+        "max_chars": 2000
+      },
+      "consent_domain": "relational_connect",
+      "sensitivity": "high",
+      "visibility_rule": "rel.mutual_link_confirmed == true",
+      "maps_to_layers": [
+        11,
+        6,
+        9,
+        10
+      ],
+      "emits_signals": [
+        "rel.narr.friction_episode"
+      ]
+    },
+    "TEAM.01": {
+      "question_id": "TEAM.01",
+      "stage_id": "TEAM_CONTEXT",
+      "set_id": "TEAM_SETUP",
+      "prompt": "Team name + purpose (one sentence)",
+      "type": "short_text",
+      "required": true,
+      "constraints": {
+        "max_chars": 200
+      },
+      "consent_domain": "team_org",
+      "sensitivity": "medium",
+      "visibility_rule": "consent.team_state == 'Yes'",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "team.purpose_text"
+      ]
+    },
+    "TEAM.02": {
+      "question_id": "TEAM.02",
+      "stage_id": "TEAM_CONTEXT",
+      "set_id": "TEAM_SETUP",
+      "prompt": "What does a “good month” look like? (3 bullets)",
+      "type": "text_list",
+      "required": true,
+      "constraints": {
+        "min_items": 3,
+        "max_items": 3,
+        "max_item_chars": 180
+      },
+      "consent_domain": "team_org",
+      "sensitivity": "medium",
+      "visibility_rule": "consent.team_state == 'Yes'",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "team.success_markers"
+      ]
+    },
+    "TEAM.03": {
+      "question_id": "TEAM.03",
+      "stage_id": "TEAM_CONTEXT",
+      "set_id": "TEAM_SETUP",
+      "prompt": "Session type",
+      "type": "single_select",
+      "required": true,
+      "enum_ref": "team_session_mode",
+      "consent_domain": "team_org",
+      "sensitivity": "low",
+      "visibility_rule": "consent.team_state == 'Yes'",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "team.session_mode"
+      ]
+    },
+    "TEAM.04": {
+      "question_id": "TEAM.04",
+      "stage_id": "TEAM_CONTEXT",
+      "set_id": "TEAM_CHECKIN",
+      "prompt": "How does our pace feel lately?",
+      "type": "single_select",
+      "required": true,
+      "enum_ref": "team_pace",
+      "consent_domain": "team_org",
+      "sensitivity": "medium",
+      "visibility_rule": "consent.team_state == 'Yes'",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "team.pace"
+      ]
+    },
+    "TEAM.05": {
+      "question_id": "TEAM.05",
+      "stage_id": "TEAM_CONTEXT",
+      "set_id": "TEAM_CHECKIN",
+      "prompt": "How safe does it feel to disagree here?",
+      "type": "likert_1_5",
+      "required": true,
+      "consent_domain": "team_org",
+      "sensitivity": "high",
+      "visibility_rule": "consent.team_state == 'Yes'",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "team.psych_safety_disagree"
+      ]
+    },
+    "TEAM.06": {
+      "question_id": "TEAM.06",
+      "stage_id": "TEAM_CONTEXT",
+      "set_id": "TEAM_CHECKIN",
+      "prompt": "How often do we leave meetings with real clarity? (1=never, 5=always)",
+      "type": "likert_1_5",
+      "required": true,
+      "consent_domain": "team_org",
+      "sensitivity": "medium",
+      "visibility_rule": "consent.team_state == 'Yes'",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "team.meeting_clarity"
+      ]
+    },
+    "TEAM.07": {
+      "question_id": "TEAM.07",
+      "stage_id": "TEAM_CONTEXT",
+      "set_id": "TEAM_CHECKIN",
+      "prompt": "Biggest repeated friction",
+      "type": "single_select",
+      "required": true,
+      "enum_ref": "team_friction_type",
+      "consent_domain": "team_org",
+      "sensitivity": "high",
+      "visibility_rule": "consent.team_state == 'Yes'",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "team.friction_type"
+      ]
+    },
+    "TEAM.08": {
+      "question_id": "TEAM.08",
+      "stage_id": "TEAM_CONTEXT",
+      "set_id": "TEAM_CHECKIN",
+      "prompt": "One strength we should protect right now",
+      "type": "short_text",
+      "required": true,
+      "constraints": {
+        "max_chars": 200
+      },
+      "consent_domain": "team_org",
+      "sensitivity": "medium",
+      "visibility_rule": "consent.team_state == 'Yes'",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "team.strength_protect_text"
+      ]
+    },
+    "TEAM.09": {
+      "question_id": "TEAM.09",
+      "stage_id": "TEAM_CONTEXT",
+      "set_id": "TEAM_CHECKIN",
+      "prompt": "What pressure is the team under? (Choose up to 3)",
+      "type": "multi_select",
+      "required": false,
+      "enum_ref": "team_pressure_tags",
+      "constraints": {
+        "min_select": 1,
+        "max_select": 3
+      },
+      "consent_domain": "team_org",
+      "sensitivity": "medium",
+      "visibility_rule": "consent.team_state == 'Yes'",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "team.pressure_tags"
+      ]
+    },
+    "INT.01": {
+      "question_id": "INT.01",
+      "stage_id": "INTEGRATION_RITUALS",
+      "set_id": "INTEGRATION_PREFS",
+      "prompt": "Preferred rhythm",
+      "type": "single_select",
+      "required": true,
+      "enum_ref": "integration_cadence",
+      "consent_domain": "personal_twin",
+      "sensitivity": "low",
+      "visibility_rule": "stage_completed.BLUEPRINT == true",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "integration.cadence"
+      ]
+    },
+    "INT.02": {
+      "question_id": "INT.02",
+      "stage_id": "INTEGRATION_RITUALS",
+      "set_id": "INTEGRATION_PREFS",
+      "prompt": "When is the least annoying time to check in?",
+      "type": "single_select",
+      "required": true,
+      "enum_ref": "integration_time_pref",
+      "consent_domain": "personal_twin",
+      "sensitivity": "low",
+      "visibility_rule": "stage_completed.BLUEPRINT == true",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "integration.time_pref"
+      ]
+    },
+    "INT.03": {
+      "question_id": "INT.03",
+      "stage_id": "INTEGRATION_RITUALS",
+      "set_id": "INTEGRATION_PREFS",
+      "prompt": "Choose 1–2 areas to keep warm",
+      "type": "multi_select",
+      "required": true,
+      "enum_ref": "integration_focus_areas",
+      "constraints": {
+        "min_select": 1,
+        "max_select": 2
+      },
+      "consent_domain": "personal_twin",
+      "sensitivity": "low",
+      "visibility_rule": "stage_completed.BLUEPRINT == true",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "integration.focus_areas"
+      ]
+    },
+    "INT.04": {
+      "question_id": "INT.04",
+      "stage_id": "INTEGRATION_RITUALS",
+      "set_id": "INTEGRATION_PREFS",
+      "prompt": "What kind of nudge is acceptable?",
+      "type": "single_select",
+      "required": true,
+      "enum_ref": "integration_nudge_style",
+      "consent_domain": "personal_twin",
+      "sensitivity": "medium",
+      "visibility_rule": "stage_completed.BLUEPRINT == true",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "integration.nudge_style"
+      ]
+    },
+    "INT.05": {
+      "question_id": "INT.05",
+      "stage_id": "INTEGRATION_RITUALS",
+      "set_id": "INTEGRATION_PREFS",
+      "prompt": "If you had to track one indicator of progress, what would it be?",
+      "type": "short_text",
+      "required": true,
+      "constraints": {
+        "max_chars": 200
+      },
+      "consent_domain": "personal_twin",
+      "sensitivity": "medium",
+      "visibility_rule": "stage_completed.BLUEPRINT == true",
+      "maps_to_layers": [
+        14,
+        15
+      ],
+      "emits_signals": [
+        "integration.progress_indicator_text"
+      ]
+    },
+    "EXIT.01": {
+      "question_id": "EXIT.01",
+      "stage_id": "RENEWAL_EXIT",
+      "set_id": "RENEWAL_REVIEW",
+      "prompt": "Has your context changed meaningfully since your last baseline?",
+      "type": "multi_select",
+      "required": true,
+      "enum_ref": "renewal_context_change",
+      "constraints": {
+        "min_select": 1,
+        "max_select": 4
+      },
+      "consent_domain": "personal_twin",
+      "sensitivity": "medium",
+      "visibility_rule": "stage_completed.ORIENTATION_CONSENT == true",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "renewal.context_change"
+      ]
+    },
+    "EXIT.02": {
+      "question_id": "EXIT.02",
+      "stage_id": "RENEWAL_EXIT",
+      "set_id": "RENEWAL_REVIEW",
+      "prompt": "Do you want to refresh any areas?",
+      "type": "multi_select",
+      "required": false,
+      "enum_ref": "renewal_refresh_areas",
+      "constraints": {
+        "min_select": 1,
+        "max_select": 4
+      },
+      "consent_domain": "personal_twin",
+      "sensitivity": "low",
+      "visibility_rule": "stage_completed.ORIENTATION_CONSENT == true",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "renewal.refresh_areas"
+      ]
+    },
+    "EXIT.03": {
+      "question_id": "EXIT.03",
+      "stage_id": "RENEWAL_EXIT",
+      "set_id": "RENEWAL_REVIEW",
+      "prompt": "Which insights still feel true vs outdated?",
+      "type": "multi_select",
+      "required": true,
+      "constraints": {
+        "ui_binds_to": "insight_ids",
+        "min_select": 1,
+        "max_select": 10
+      },
+      "consent_domain": "personal_twin",
+      "sensitivity": "medium",
+      "visibility_rule": "stage_completed.ORIENTATION_CONSENT == true",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "renewal.insight_validations"
+      ]
+    },
+    "EXIT.04": {
+      "question_id": "EXIT.04",
+      "stage_id": "RENEWAL_EXIT",
+      "set_id": "RENEWAL_REVIEW",
+      "prompt": "Do you want to pause, export, or delete your data?",
+      "type": "single_select",
+      "required": true,
+      "enum_ref": "data_user_action",
+      "consent_domain": "account",
+      "sensitivity": "high",
+      "visibility_rule": "stage_completed.ORIENTATION_CONSENT == true",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "data.user_action"
+      ]
+    },
+    "EXIT.05": {
+      "question_id": "EXIT.05",
+      "stage_id": "RENEWAL_EXIT",
+      "set_id": "RENEWAL_REVIEW",
+      "prompt": "Any feedback on safety, tone, or misinterpretation risk?",
+      "type": "long_text",
+      "required": false,
+      "constraints": {
+        "max_chars": 1200
+      },
+      "consent_domain": "account",
+      "sensitivity": "high",
+      "visibility_rule": "stage_completed.ORIENTATION_CONSENT == true",
+      "maps_to_layers": [],
+      "emits_signals": [
+        "feedback.safety_tone_text"
+      ]
+    }
+  },
+  "derived_signal_conventions": {
+    "lex.*": "Lexical descriptors (tokenised + raw stored)",
+    "energy.* / recovery.*": "Energy and recovery signatures",
+    "processing.*": "Perception and information-processing hints",
+    "stress.* / state.* / response.*": "Stress states and behavioural responses",
+    "rel.*": "Dyadic dynamics (conflict, needs, repair, friction)",
+    "team.*": "Aggregate climate indicators",
+    "edge.* / experiment.* / integration.*": "Trajectory scaffolding (L14–L15)"
+  }
+}

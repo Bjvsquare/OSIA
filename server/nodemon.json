@@ -1,0 +1,9 @@
+{
+    "ignore": [
+        "data/**",
+        "**/data/**",
+        "*.log",
+        "server-vital-signs.log"
+    ],
+    "ext": "ts"
+}

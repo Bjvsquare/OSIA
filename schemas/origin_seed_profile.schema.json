@@ -1,0 +1,133 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://yourdomain/schemas/origin_seed_profile.schema.json",
+    "title": "OriginSeedProfile",
+    "type": "object",
+    "required": [
+        "user_id",
+        "precision",
+        "trait_vector",
+        "uncertainty",
+        "version",
+        "generated_at"
+    ],
+    "properties": {
+        "user_id": {
+            "type": "string",
+            "minLength": 6
+        },
+        "precision": {
+            "type": "string",
+            "enum": [
+                "HIGH",
+                "MEDIUM",
+                "BROAD"
+            ]
+        },
+        "trait_vector": {
+            "type": "array",
+            "minItems": 10,
+            "items": {
+                "type": "object",
+                "required": [
+                    "trait_id",
+                    "score",
+                    "confidence"
+                ],
+                "properties": {
+                    "trait_id": {
+                        "type": "string"
+                    },
+                    "score": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100
+                    },
+                    "confidence": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                    },
+                    "stats": {
+                        "type": "object",
+                        "properties": {
+                            "min": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 100
+                            },
+                            "max": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 100
+                            },
+                            "median": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 100
+                            },
+                            "spread": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 100
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        "uncertainty": {
+            "type": "object",
+            "required": [
+                "time_mode",
+                "mean_spread"
+            ],
+            "properties": {
+                "time_mode": {
+                    "type": "string",
+                    "enum": [
+                        "EXACT",
+                        "WINDOW",
+                        "UNKNOWN"
+                    ]
+                },
+                "mean_spread": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                },
+                "sampling": {
+                    "type": "object",
+                    "properties": {
+                        "samples": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 200
+                        },
+                        "strategy": {
+                            "type": "string",
+                            "enum": [
+                                "SINGLE",
+                                "WINDOW_SAMPLE",
+                                "FULL_DAY_SAMPLE"
+                            ]
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "version": {
+            "type": "string",
+            "pattern": "^v\\d+$"
+        },
+        "generated_at": {
+            "type": "string",
+            "format": "date-time"
+        }
+    },
+    "additionalProperties": false
+}

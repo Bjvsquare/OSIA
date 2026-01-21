@@ -1,0 +1,129 @@
+{
+    "version": "v0",
+    "scale": {
+        "min": 0,
+        "max": 100
+    },
+    "traits": [
+        {
+            "trait_id": "COG_TEMPO",
+            "name": "Cognitive Tempo",
+            "description": "Speed of synthesis and preference for fast iteration vs slow deliberation."
+        },
+        {
+            "trait_id": "COG_ABSTRACTION",
+            "name": "Abstraction Preference",
+            "description": "Preference for conceptual frameworks vs concrete specifics."
+        },
+        {
+            "trait_id": "STRUCTURE_NEED",
+            "name": "Structure Need",
+            "description": "Need for planning, order, predictability, and clear constraints."
+        },
+        {
+            "trait_id": "NOVELTY_APPETITE",
+            "name": "Novelty Appetite",
+            "description": "Drive for new stimuli, exploration, and variety."
+        },
+        {
+            "trait_id": "DEPTH_ORIENT",
+            "name": "Depth Orientation",
+            "description": "Tendency toward deep processing, intensity, and meaning-depth vs surface scanning."
+        },
+        {
+            "trait_id": "EMO_SIGNAL_GAIN",
+            "name": "Emotional Signal Sensitivity",
+            "description": "Sensitivity to subtle emotional cues in self/others."
+        },
+        {
+            "trait_id": "BOUNDARY_STYLE",
+            "name": "Boundary Style",
+            "description": "Porous/merging vs firm/structured boundaries in relationships and work."
+        },
+        {
+            "trait_id": "TRUST_THRESHOLD",
+            "name": "Trust Threshold",
+            "description": "How quickly trust is granted and how strongly it is protected."
+        },
+        {
+            "trait_id": "CONTROL_POSTURE",
+            "name": "Control Posture",
+            "description": "Preference for control, certainty, and risk containment vs openness to ambiguity."
+        },
+        {
+            "trait_id": "RISK_TOLERANCE",
+            "name": "Risk Tolerance",
+            "description": "Comfort with uncertain outcomes and decision-making under volatility."
+        },
+        {
+            "trait_id": "CONFLICT_STYLE",
+            "name": "Conflict Style",
+            "description": "Direct engagement vs avoidance vs repair-first approaches."
+        },
+        {
+            "trait_id": "SOCIAL_ENERGY",
+            "name": "Social Energy",
+            "description": "Recharge alone vs with people; preference for breadth vs depth of connection."
+        },
+        {
+            "trait_id": "INFLUENCE_STYLE",
+            "name": "Influence Style",
+            "description": "Persuasion through logic, warmth, presence, authority, or storytelling."
+        },
+        {
+            "trait_id": "WORK_MODE",
+            "name": "Work Mode",
+            "description": "Preference for deep work, sprints, collaboration, or steady cadence."
+        },
+        {
+            "trait_id": "QUALITY_BAR",
+            "name": "Quality Bar",
+            "description": "Tolerance for imperfect shipping vs high standards and refinement."
+        },
+        {
+            "trait_id": "STRESS_ACTIVATION",
+            "name": "Stress Activation",
+            "description": "Stress response intensity and activation level under pressure."
+        },
+        {
+            "trait_id": "STRESS_DIRECTION",
+            "name": "Stress Direction",
+            "description": "Stress tends toward inward withdrawal vs outward action vs cognitive looping."
+        },
+        {
+            "trait_id": "DISCIPLINE_STYLE",
+            "name": "Discipline Style",
+            "description": "Discipline via routine/structure vs inspiration/momentum."
+        },
+        {
+            "trait_id": "VALUE_SECURITY",
+            "name": "Security Orientation",
+            "description": "Drive for safety, stability, and protected downside."
+        },
+        {
+            "trait_id": "VALUE_GROWTH",
+            "name": "Growth Orientation",
+            "description": "Drive for expansion, development, and capability-building."
+        },
+        {
+            "trait_id": "VALUE_CONNECTION",
+            "name": "Connection Orientation",
+            "description": "Drive for belonging, closeness, and relational harmony."
+        },
+        {
+            "trait_id": "DECISION_STYLE",
+            "name": "Decision Style",
+            "description": "Analytical, intuitive, consultative, or decisive patterns."
+        },
+        {
+            "trait_id": "LEARNING_STYLE",
+            "name": "Learning Style",
+            "description": "Learn by reading, doing, teaching, or dialog."
+        },
+        {
+            "trait_id": "TIME_HORIZON",
+            "name": "Time Horizon",
+            "description": "Short-term optimization vs long-term strategic orientation."
+        }
+    ]
+}

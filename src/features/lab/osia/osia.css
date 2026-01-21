@@ -1,0 +1,432 @@
+/* ===================================================================
+   OSIA — Dynamic Data Visualization System
+   Standalone styles (no dependency on platform CSS)
+   =================================================================== */
+
+/* --- Page Container --- */
+.osia-page {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #020108;
+    overflow: hidden;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    user-select: none;
+    -webkit-user-select: none;
+    z-index: 9999;
+    isolation: isolate;
+}
+
+.osia-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* --- Detail Panel --- */
+.osia-detail-panel {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 38%;
+    min-width: 340px;
+    max-width: 500px;
+    padding: 2rem 2rem 2rem 2.5rem;
+    background: linear-gradient(135deg, rgba(10, 12, 30, 0.92), rgba(5, 8, 20, 0.96));
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-left: 1px solid rgba(100, 140, 255, 0.12);
+    overflow-y: auto;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(100, 140, 255, 0.2) transparent;
+}
+
+.osia-detail-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.osia-detail-close:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.osia-detail-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding-right: 2rem;
+}
+
+.osia-detail-type {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: rgba(140, 180, 255, 0.7);
+    font-weight: 600;
+}
+
+.osia-detail-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.25;
+    margin: 0;
+}
+
+.osia-detail-category {
+    display: inline-block;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: rgba(255, 180, 100, 0.8);
+    background: rgba(255, 180, 100, 0.08);
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    width: fit-content;
+}
+
+.osia-detail-description {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: rgba(200, 210, 240, 0.75);
+    margin: 0;
+}
+
+/* --- Intensity Bar --- */
+.osia-intensity-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.osia-intensity-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: rgba(180, 200, 240, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.osia-intensity-track {
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+}
+
+.osia-intensity-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #4A9EFF, #FF8C42);
+}
+
+/* --- Sections --- */
+.osia-detail-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.osia-detail-section-title {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: rgba(140, 180, 255, 0.5);
+    font-weight: 600;
+    margin: 0;
+}
+
+.osia-detail-subtraits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.osia-subtrait-badge {
+    font-size: 0.72rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    background: rgba(74, 158, 255, 0.08);
+    border: 1px solid rgba(74, 158, 255, 0.15);
+    color: rgba(150, 190, 255, 0.85);
+}
+
+/* --- Tags --- */
+.osia-tag-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.osia-tag {
+    font-size: 0.68rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(200, 210, 240, 0.7);
+}
+
+/* --- Navigation Controls --- */
+.osia-nav-controls {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 20;
+}
+
+.osia-nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1rem;
+    border-radius: 10px;
+    background: rgba(10, 15, 35, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(100, 140, 255, 0.12);
+    color: rgba(200, 210, 240, 0.8);
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s;
+    letter-spacing: 0.02em;
+}
+
+.osia-nav-btn:hover {
+    background: rgba(74, 158, 255, 0.12);
+    border-color: rgba(74, 158, 255, 0.3);
+    color: #fff;
+}
+
+.osia-nav-center {
+    background: rgba(74, 158, 255, 0.08);
+    border-color: rgba(74, 158, 255, 0.2);
+}
+
+/* --- User Labels --- */
+.osia-user-labels {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.osia-user-label {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 10px;
+    background: rgba(5, 8, 20, 0.6);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(100, 140, 255, 0.1);
+}
+
+.osia-user-label-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 8px currentColor;
+}
+
+.osia-user-label-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.osia-user-label-type {
+    font-size: 0.65rem;
+    color: rgba(180, 200, 240, 0.6);
+}
+
+/* --- Loading Screen --- */
+.osia-loading {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at center, #0a0c1e 0%, #020108 100%);
+    z-index: 100;
+}
+
+.osia-loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+/* Loading Orb */
+.osia-loading-orb {
+    position: relative;
+    width: 80px;
+    height: 80px;
+}
+
+.osia-loading-orb-inner {
+    position: absolute;
+    inset: 20%;
+    border-radius: 50%;
+    background: radial-gradient(circle, #FF8C42, #4A9EFF);
+    animation: osia-pulse 2s ease-in-out infinite;
+}
+
+.osia-loading-orb-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(74, 158, 255, 0.3);
+    animation: osia-spin 3s linear infinite;
+}
+
+.osia-loading-orb-ring::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 50%;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #4A9EFF;
+    box-shadow: 0 0 10px #4A9EFF;
+}
+
+.osia-loading-orb-ring-2 {
+    inset: -8px;
+    border-color: rgba(255, 140, 66, 0.2);
+    animation-duration: 4s;
+    animation-direction: reverse;
+}
+
+.osia-loading-orb-ring-2::after {
+    background: #FF8C42;
+    box-shadow: 0 0 10px #FF8C42;
+}
+
+.osia-loading-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: 0.4em;
+    color: #fff;
+    margin: 0;
+    text-shadow: 0 0 30px rgba(74, 158, 255, 0.3);
+}
+
+.osia-loading-subtitle {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: rgba(180, 200, 240, 0.5);
+    margin: -0.8rem 0 0;
+}
+
+.osia-loading-bar {
+    width: 200px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 1px;
+    overflow: hidden;
+}
+
+.osia-loading-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4A9EFF, #FF8C42);
+    border-radius: 1px;
+}
+
+.osia-loading-status {
+    font-size: 0.65rem;
+    color: rgba(140, 160, 200, 0.5);
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+/* --- Title Bar --- */
+.osia-title-bar {
+    position: absolute;
+    top: 1.2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.4rem 1.2rem;
+    border-radius: 10px;
+    background: rgba(5, 8, 20, 0.5);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(100, 140, 255, 0.08);
+    z-index: 10;
+}
+
+.osia-title-text {
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: rgba(180, 200, 240, 0.5);
+    font-weight: 600;
+}
+
+.osia-title-mode {
+    font-size: 0.6rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    background: rgba(74, 158, 255, 0.1);
+    color: rgba(140, 180, 255, 0.7);
+}
+
+/* --- Animations --- */
+@keyframes osia-pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+
+    50% {
+        transform: scale(1.15);
+        opacity: 1;
+    }
+}
+
+@keyframes osia-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}

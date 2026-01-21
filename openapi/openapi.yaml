@@ -1,0 +1,87 @@
+openapi: 3.0.3
+info:
+  title: Origin Seed & Refinement API
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8080
+paths:
+  /v1/origin-seed/generate:
+    post:
+      summary: Generate Origin Seed Profile v0 from DOB + birthplace + time mode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/origin_seed_input.schema.json
+      responses:
+        "200":
+          description: OriginSeedProfile
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/origin_seed_profile.schema.json
+
+  /v1/refine/blueprint/answer:
+    post:
+      summary: Submit a blueprint answer and apply trait updates
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id, question_id, response, answered_at]
+              properties:
+                user_id: { type: string }
+                question_id: { type: string }
+                response:
+                  oneOf:
+                    - type: integer
+                      description: Likert index 0-4
+                      minimum: 0
+                      maximum: 4
+                    - type: string
+                      description: Either-or answer "A" or "B"
+                      enum: ["A","B"]
+                answered_at: { type: string, format: date-time }
+      responses:
+        "200":
+          description: Updated trait vector summary
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [user_id, version, trait_vector]
+                properties:
+                  user_id: { type: string }
+                  version: { type: string }
+                  trait_vector:
+                    type: array
+                    items:
+                      type: object
+                      required: [trait_id, score, confidence]
+                      properties:
+                        trait_id: { type: string }
+                        score: { type: number }
+                        confidence: { type: number }
+
+  /v1/refine/events:
+    post:
+      summary: Submit an evidence event (behavioral / edits / ratings)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/evidence_event.schema.json
+      responses:
+        "200":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok]
+                properties:
+                  ok: { type: boolean }

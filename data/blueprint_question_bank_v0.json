@@ -1,0 +1,466 @@
+{
+    "version": "v0",
+    "response_scales": {
+        "likert_5": [
+            "Strongly disagree",
+            "Disagree",
+            "Neutral",
+            "Agree",
+            "Strongly agree"
+        ],
+        "either_or": [
+            "A",
+            "B"
+        ]
+    },
+    "questions": [
+        {
+            "question_id": "BP.01",
+            "layer": 1,
+            "type": "likert_5",
+            "prompt": "I prefer a plan I can trust over a plan that excites me.",
+            "maps_to": [
+                {
+                    "trait_id": "STRUCTURE_NEED",
+                    "weight": 0.7
+                },
+                {
+                    "trait_id": "VALUE_SECURITY",
+                    "weight": 0.5
+                }
+            ]
+        },
+        {
+            "question_id": "BP.02",
+            "layer": 1,
+            "type": "likert_5",
+            "prompt": "I get uncomfortable when goals are vague or shifting.",
+            "maps_to": [
+                {
+                    "trait_id": "STRUCTURE_NEED",
+                    "weight": 0.6
+                },
+                {
+                    "trait_id": "CONTROL_POSTURE",
+                    "weight": 0.4
+                }
+            ]
+        },
+        {
+            "question_id": "BP.03",
+            "layer": 1,
+            "type": "likert_5",
+            "prompt": "I decide faster when I have fewer options to consider.",
+            "maps_to": [
+                {
+                    "trait_id": "COG_TEMPO",
+                    "weight": 0.4
+                },
+                {
+                    "trait_id": "DECISION_STYLE",
+                    "weight": 0.5
+                }
+            ]
+        },
+        {
+            "question_id": "BP.04",
+            "layer": 1,
+            "type": "likert_5",
+            "prompt": "I naturally notice subtle changes in people's tone or mood.",
+            "maps_to": [
+                {
+                    "trait_id": "EMO_SIGNAL_GAIN",
+                    "weight": 0.7
+                },
+                {
+                    "trait_id": "DEPTH_ORIENT",
+                    "weight": 0.3
+                }
+            ]
+        },
+        {
+            "question_id": "BP.05",
+            "layer": 2,
+            "type": "likert_5",
+            "prompt": "When I'm stressed, I tend to withdraw and process privately.",
+            "maps_to": [
+                {
+                    "trait_id": "STRESS_DIRECTION",
+                    "weight": 0.7
+                },
+                {
+                    "trait_id": "DEPTH_ORIENT",
+                    "weight": 0.3
+                }
+            ]
+        },
+        {
+            "question_id": "BP.06",
+            "layer": 2,
+            "type": "likert_5",
+            "prompt": "When I'm stressed, my mind loops and replays decisions.",
+            "maps_to": [
+                {
+                    "trait_id": "STRESS_DIRECTION",
+                    "weight": 0.6
+                },
+                {
+                    "trait_id": "CONTROL_POSTURE",
+                    "weight": 0.4
+                }
+            ]
+        },
+        {
+            "question_id": "BP.07",
+            "layer": 2,
+            "type": "likert_5",
+            "prompt": "I'd rather refine something until it's solid than ship it early.",
+            "maps_to": [
+                {
+                    "trait_id": "QUALITY_BAR",
+                    "weight": 0.7
+                },
+                {
+                    "trait_id": "WORK_MODE",
+                    "weight": 0.4
+                }
+            ]
+        },
+        {
+            "question_id": "BP.08",
+            "layer": 2,
+            "type": "likert_5",
+            "prompt": "I gain energy from variety and new experiences.",
+            "maps_to": [
+                {
+                    "trait_id": "NOVELTY_APPETITE",
+                    "weight": 0.8
+                }
+            ]
+        },
+        {
+            "question_id": "BP.09",
+            "layer": 3,
+            "type": "likert_5",
+            "prompt": "I'm more comfortable with ambiguity than most people.",
+            "maps_to": [
+                {
+                    "trait_id": "CONTROL_POSTURE",
+                    "weight": -0.6
+                },
+                {
+                    "trait_id": "RISK_TOLERANCE",
+                    "weight": 0.5
+                }
+            ]
+        },
+        {
+            "question_id": "BP.10",
+            "layer": 3,
+            "type": "likert_5",
+            "prompt": "Trust takes time for me; once broken, it's hard to restore.",
+            "maps_to": [
+                {
+                    "trait_id": "TRUST_THRESHOLD",
+                    "weight": 0.8
+                }
+            ]
+        },
+        {
+            "question_id": "BP.11",
+            "layer": 3,
+            "type": "likert_5",
+            "prompt": "I prefer a few deep relationships over many light connections.",
+            "maps_to": [
+                {
+                    "trait_id": "SOCIAL_ENERGY",
+                    "weight": 0.6
+                },
+                {
+                    "trait_id": "DEPTH_ORIENT",
+                    "weight": 0.3
+                }
+            ]
+        },
+        {
+            "question_id": "BP.12",
+            "layer": 3,
+            "type": "likert_5",
+            "prompt": "I'm comfortable taking the lead when a decision is needed.",
+            "maps_to": [
+                {
+                    "trait_id": "DECISION_STYLE",
+                    "weight": 0.6
+                },
+                {
+                    "trait_id": "INFLUENCE_STYLE",
+                    "weight": 0.4
+                }
+            ]
+        },
+        {
+            "question_id": "BP.13",
+            "layer": 4,
+            "type": "likert_5",
+            "prompt": "I think in systems and patterns more than in isolated details.",
+            "maps_to": [
+                {
+                    "trait_id": "COG_ABSTRACTION",
+                    "weight": 0.7
+                }
+            ]
+        },
+        {
+            "question_id": "BP.14",
+            "layer": 4,
+            "type": "likert_5",
+            "prompt": "My best work happens in uninterrupted focus blocks.",
+            "maps_to": [
+                {
+                    "trait_id": "WORK_MODE",
+                    "weight": 0.6
+                },
+                {
+                    "trait_id": "STRUCTURE_NEED",
+                    "weight": 0.2
+                }
+            ]
+        },
+        {
+            "question_id": "BP.15",
+            "layer": 4,
+            "type": "likert_5",
+            "prompt": "I learn fastest by doing and iterating, not by reading alone.",
+            "maps_to": [
+                {
+                    "trait_id": "LEARNING_STYLE",
+                    "weight": 0.7
+                },
+                {
+                    "trait_id": "COG_TEMPO",
+                    "weight": 0.2
+                }
+            ]
+        },
+        {
+            "question_id": "BP.16",
+            "layer": 5,
+            "type": "either_or",
+            "prompt": "Which is more like you? A) I act quickly and adjust later. B) I think carefully and act once.",
+            "maps_to": [
+                {
+                    "trait_id": "COG_TEMPO",
+                    "weight": 0.6
+                },
+                {
+                    "trait_id": "DECISION_STYLE",
+                    "weight": 0.5
+                }
+            ]
+        },
+        {
+            "question_id": "BP.17",
+            "layer": 5,
+            "type": "either_or",
+            "prompt": "Which is more like you? A) I value stability most. B) I value growth most.",
+            "maps_to": [
+                {
+                    "trait_id": "VALUE_SECURITY",
+                    "weight": 0.7
+                },
+                {
+                    "trait_id": "VALUE_GROWTH",
+                    "weight": 0.7
+                }
+            ]
+        },
+        {
+            "question_id": "BP.18",
+            "layer": 5,
+            "type": "likert_5",
+            "prompt": "I prefer clear boundaries in relationships and work.",
+            "maps_to": [
+                {
+                    "trait_id": "BOUNDARY_STYLE",
+                    "weight": 0.8
+                }
+            ]
+        },
+        {
+            "question_id": "BP.19",
+            "layer": 5,
+            "type": "likert_5",
+            "prompt": "I tend to address conflict directly rather than avoid it.",
+            "maps_to": [
+                {
+                    "trait_id": "CONFLICT_STYLE",
+                    "weight": 0.8
+                }
+            ]
+        },
+        {
+            "question_id": "BP.20",
+            "layer": 5,
+            "type": "likert_5",
+            "prompt": "I'm motivated by long-term outcomes more than short-term wins.",
+            "maps_to": [
+                {
+                    "trait_id": "TIME_HORIZON",
+                    "weight": 0.8
+                }
+            ]
+        },
+        {
+            "question_id": "BP.21",
+            "layer": 2,
+            "type": "likert_5",
+            "prompt": "My discipline comes from routine rather than bursts of inspiration.",
+            "maps_to": [
+                {
+                    "trait_id": "DISCIPLINE_STYLE",
+                    "weight": 0.8
+                }
+            ]
+        },
+        {
+            "question_id": "BP.22",
+            "layer": 2,
+            "type": "likert_5",
+            "prompt": "I'm comfortable taking calculated risks if the upside is meaningful.",
+            "maps_to": [
+                {
+                    "trait_id": "RISK_TOLERANCE",
+                    "weight": 0.7
+                }
+            ]
+        },
+        {
+            "question_id": "BP.23",
+            "layer": 3,
+            "type": "likert_5",
+            "prompt": "I prefer influence through clarity and logic over emotional persuasion.",
+            "maps_to": [
+                {
+                    "trait_id": "INFLUENCE_STYLE",
+                    "weight": 0.7
+                },
+                {
+                    "trait_id": "COG_ABSTRACTION",
+                    "weight": 0.2
+                }
+            ]
+        },
+        {
+            "question_id": "BP.24",
+            "layer": 4,
+            "type": "likert_5",
+            "prompt": "I'm highly sensitive to environments that feel chaotic or unstable.",
+            "maps_to": [
+                {
+                    "trait_id": "STRESS_ACTIVATION",
+                    "weight": 0.5
+                },
+                {
+                    "trait_id": "VALUE_SECURITY",
+                    "weight": 0.4
+                }
+            ]
+        },
+        {
+            "question_id": "BP.25",
+            "layer": 4,
+            "type": "likert_5",
+            "prompt": "I prefer to keep parts of myself private until trust is established.",
+            "maps_to": [
+                {
+                    "trait_id": "TRUST_THRESHOLD",
+                    "weight": 0.5
+                },
+                {
+                    "trait_id": "DEPTH_ORIENT",
+                    "weight": 0.4
+                }
+            ]
+        },
+        {
+            "question_id": "BP.26",
+            "layer": 1,
+            "type": "likert_5",
+            "prompt": "I enjoy exploring multiple perspectives before settling on a view.",
+            "maps_to": [
+                {
+                    "trait_id": "COG_ABSTRACTION",
+                    "weight": 0.3
+                },
+                {
+                    "trait_id": "NOVELTY_APPETITE",
+                    "weight": 0.4
+                }
+            ]
+        },
+        {
+            "question_id": "BP.27",
+            "layer": 2,
+            "type": "likert_5",
+            "prompt": "Under pressure, I become more controlling about details.",
+            "maps_to": [
+                {
+                    "trait_id": "CONTROL_POSTURE",
+                    "weight": 0.7
+                },
+                {
+                    "trait_id": "STRESS_ACTIVATION",
+                    "weight": 0.3
+                }
+            ]
+        },
+        {
+            "question_id": "BP.28",
+            "layer": 3,
+            "type": "likert_5",
+            "prompt": "I prefer direct feedback, even if it's uncomfortable.",
+            "maps_to": [
+                {
+                    "trait_id": "CONFLICT_STYLE",
+                    "weight": 0.5
+                },
+                {
+                    "trait_id": "QUALITY_BAR",
+                    "weight": 0.2
+                }
+            ]
+        },
+        {
+            "question_id": "BP.29",
+            "layer": 4,
+            "type": "likert_5",
+            "prompt": "My default is to solve problems by improving the system, not the person.",
+            "maps_to": [
+                {
+                    "trait_id": "COG_ABSTRACTION",
+                    "weight": 0.4
+                },
+                {
+                    "trait_id": "DECISION_STYLE",
+                    "weight": 0.2
+                }
+            ]
+        },
+        {
+            "question_id": "BP.30",
+            "layer": 5,
+            "type": "likert_5",
+            "prompt": "I feel most fulfilled when my work contributes to meaningful progress over time.",
+            "maps_to": [
+                {
+                    "trait_id": "VALUE_GROWTH",
+                    "weight": 0.5
+                },
+                {
+                    "trait_id": "TIME_HORIZON",
+                    "weight": 0.4
+                }
+            ]
+        }
+    ]
+}
