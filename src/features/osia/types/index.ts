@@ -1,7 +1,17 @@
+// ── Relationship Taxonomy ────────────────────────────────────────
+export type RelationshipCluster = 'family' | 'friends' | 'colleagues' | 'team' | 'org';
+export type RelationshipSubType =
+    | 'parent' | 'sibling' | 'extended_family'
+    | 'close_friend' | 'acquaintance'
+    | 'direct_team' | 'cross_team' | 'manager';
+
+export type GalaxyViewMode = 'solo' | 'constellation' | 'nebula';
+
+// ── Orb Data ─────────────────────────────────────────────────────
 export interface OrbData {
     id: string;
     name: string;
-    type: 'core' | 'cluster' | 'layer' | 'synergy' | 'trait' | 'subtrait' | 'sharedVision' | 'complementary' | 'collectiveIntelligence' | 'expression';
+    type: 'core' | 'cluster' | 'layer' | 'synergy' | 'trait' | 'subtrait' | 'sharedVision' | 'complementary' | 'collectiveIntelligence' | 'expression' | 'connection';
     category?: string;
     description: string;
     intensity: number;
@@ -12,16 +22,26 @@ export interface OrbData {
     clusterId?: string;
     layerIndex?: number;
     metadata?: Record<string, any>;
+    // Galaxy orbital fields
+    orbitalRadius?: number;
+    orbitalAngle?: number;
+    orbitalPlane?: number;    // tilt in radians
+    orbitalSpeed?: number;
+    relationshipCluster?: RelationshipCluster;
+    avatarUrl?: string;
 }
 
+// ── Connection Data ──────────────────────────────────────────────
 export interface ConnectionData {
     id: string;
     sourceId: string;
     targetId: string;
-    type: 'parent-child' | 'synergy' | 'complement' | 'shared-vision';
+    type: 'parent-child' | 'synergy' | 'complement' | 'shared-vision' | 'relationship';
     strength: number;
     animated: boolean;
     color?: string;
+    relationshipCluster?: RelationshipCluster;
+    relationshipSubType?: RelationshipSubType;
 }
 
 export interface UserData {
@@ -41,6 +61,7 @@ export interface VisualizationData {
     synergyNodes: OrbData[];
     sharedNodes: OrbData[];
     viewMode: 'single' | 'pair' | 'team' | 'organization';
+    galaxyMode?: GalaxyViewMode;
 }
 
 export interface ViewState {

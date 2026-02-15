@@ -35,9 +35,16 @@ export function OriginOrb({ traits, scale = 1 }: OriginOrbProps) {
 
     useFrame((state) => {
         if (group.current) {
-            // Slowly rotate
+            const t = state.clock.getElapsedTime();
+
+            // Multi-axis dynamic rotation (not just flat Y spin)
             group.current.rotation.y += 0.002;
-            group.current.rotation.x = Math.sin(state.clock.getElapsedTime() * 0.5) * 0.2;
+            group.current.rotation.x = Math.sin(t * 0.4) * 0.2 + Math.sin(t * 0.17) * 0.08;
+            group.current.rotation.z = Math.cos(t * 0.3) * 0.1;
+
+            // Breathing scale
+            const breathe = 1 + Math.sin(t * 0.6) * 0.03;
+            group.current.scale.setScalar(breathe * scale);
         }
     });
 
