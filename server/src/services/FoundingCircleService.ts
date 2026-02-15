@@ -1,4 +1,5 @@
 import { supabaseService } from './SupabaseService';
+import { emailService } from './EmailService';
 
 interface FoundingCircleMember {
     id: string;
@@ -101,6 +102,11 @@ export class FoundingCircleService {
 
         console.log(`[FoundingCircle] New member joined: ${email} at position #${queueNumber}`);
 
+        // Send welcome email with access code
+        emailService.sendAccessCodeEmail(email, accessCode, queueNumber).catch(err => {
+            console.error('[FoundingCircle] Failed to send welcome email:', err);
+        });
+
         return {
             queueNumber,
             accessCode,
@@ -176,6 +182,12 @@ export class FoundingCircleService {
         if (error) throw new Error(error.message);
 
         console.log(`[FoundingCircle] Approved member: ${member.email} with code ${accessCode}`);
+
+        // Send access code email
+        emailService.sendAccessCodeEmail(member.email, accessCode, member.queue_number).catch(err => {
+            console.error('[FoundingCircle] Failed to send approval email:', err);
+        });
+
         return this.mapToMember(updated);
     }
 
@@ -210,7 +222,13 @@ export class FoundingCircleService {
                 .select()
                 .single();
 
-            if (updated) approved.push(this.mapToMember(updated));
+            if (updated) {
+                approved.push(this.mapToMember(updated));
+                // Send access code email for each approved member
+                emailService.sendAccessCodeEmail(member.email, accessCode, member.queue_number).catch(err => {
+                    console.error(`[FoundingCircle] Failed to send email to ${member.email}:`, err);
+                });
+            }
         }
 
         console.log(`[FoundingCircle] Bulk approved ${approved.length} members`);
