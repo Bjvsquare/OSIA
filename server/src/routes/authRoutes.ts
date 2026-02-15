@@ -178,7 +178,7 @@ router.post('/login/2fa', async (req, res) => {
 
         // Get user info
         const user = await userService.getProfile(userId);
-        const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET);
+        const token = jwt.sign({ id: user.id, username: user.username, isAdmin: !!user.isAdmin }, JWT_SECRET);
 
         await auditLogger.log({
             userId: user.id,
