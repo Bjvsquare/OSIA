@@ -139,7 +139,7 @@ if (process.env.NODE_ENV === 'production') {
   const frontendPath = path.join(__dirname, '../../dist');
   app.use(express.static(frontendPath));
   // SPA fallback — serve index.html for all non-API routes
-  app.get('*', (req: Request, res: Response) => {
+  app.get('/{*path}', (req: Request, res: Response) => {
     if (!req.path.startsWith('/api') && !req.path.startsWith('/uploads')) {
       res.sendFile(path.join(frontendPath, 'index.html'));
     }
