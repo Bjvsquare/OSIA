@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../config/jwt';
 import { authenticator } from 'otplib';
 import QRCode from 'qrcode';
+import { ADMIN_EMAILS } from '../config/admin';
 
 const logToDisk = (message: string) => {
     try {
@@ -135,6 +136,19 @@ export class UserService {
 
         if (!user) throw new Error('User not found');
 
+        // Auto-grant admin based on ADMIN_EMAILS config (source of truth)
+        const isAdmin = !!user.isAdmin || ADMIN_EMAILS.includes(user.username?.toLowerCase());
+
+        // Persist the flag if it changed (one-time auto-promotion)
+        if (isAdmin && !user.isAdmin) {
+            user.isAdmin = true;
+            const userIndex = users.findIndex(u => u.id === userId);
+            if (userIndex !== -1) {
+                users[userIndex].isAdmin = true;
+                await db.saveCollection('users', users);
+            }
+        }
+
         const foundingMembersRaw = await db.getCollection<any>('founding_circle').catch(() => []);
         const foundingMembers = Array.isArray(foundingMembersRaw) ? foundingMembersRaw : [];
         const isFoundingMember =
@@ -148,6 +162,7 @@ export class UserService {
             subscriptionTier: user.subscriptionTier || 'free',
             onboardingCompleted: !!user.onboardingCompleted,
             isFoundingMember,
+            isAdmin,
             ...userWithoutPassword
         };
     }
