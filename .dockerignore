@@ -1,0 +1,12 @@
+node_modules
+server/node_modules
+server/dist
+dist
+.git
+.env
+server/.env
+server/data
+server/uploads
+*.log
+.gitignore
+README.md
