@@ -364,5 +364,138 @@ router.post('/promote-admin', authenticate, async (req: any, res: any) => {
         res.status(500).json({ error: error.message });
     }
 });
+// ===== APPLE SIGN-IN =====
+
+// Apple OAuth callback (form_post redirect from Apple)
+router.post('/apple/callback', async (req: any, res: any) => {
+    try {
+        const { id_token, code, state, user: appleUserData } = req.body;
+
+        if (!id_token) {
+            return res.redirect('/?error=apple_auth_failed');
+        }
+
+        // Decode Apple's identity token (JWT) to extract email
+        // Apple's id_token is a standard JWT — we decode the payload
+        const tokenParts = id_token.split('.');
+        if (tokenParts.length !== 3) {
+            return res.redirect('/?error=invalid_apple_token');
+        }
+
+        const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64url').toString());
+        const email = payload.email;
+
+        if (!email) {
+            return res.redirect('/?error=no_email_from_apple');
+        }
+
+        // Check if user exists
+        const userExists = await userService.userExists(email);
+        if (!userExists) {
+            return res.redirect('/signup?error=account_not_found&provider=apple');
+        }
+
+        // Parse user name from Apple (only sent on first auth)
+        let name = email.split('@')[0];
+        if (appleUserData) {
+            try {
+                const parsed = typeof appleUserData === 'string' ? JSON.parse(appleUserData) : appleUserData;
+                if (parsed.name) {
+                    name = [parsed.name.firstName, parsed.name.lastName].filter(Boolean).join(' ') || name;
+                }
+            } catch (e) { /* ignore parse errors */ }
+        }
+
+        // Find or create user (reuse Google flow — both are OAuth)
+        const user = await userService.findOrCreateGoogleUser({
+            email,
+            name,
+            sub: `apple_${payload.sub}`,
+            email_verified: payload.email_verified !== false
+        } as any);
+
+        // Check 2FA
+        const twoFactorStatus = await userService.getTwoFactorStatus(user.id);
+        if (twoFactorStatus.enabled) {
+            return res.redirect(`/login?mfa=true&userId=${user.id}`);
+        }
+
+        // Issue JWT and redirect with token
+        const token = jwt.sign({ id: user.id, username: user.username, isAdmin: !!user.isAdmin }, JWT_SECRET);
+
+        await auditLogger.log({
+            userId: user.id,
+            username: user.username,
+            action: 'apple_login',
+            status: 'success'
+        });
+
+        // Redirect to the app with the token in a fragment (never sent to server)
+        res.redirect(`/auth/callback?token=${encodeURIComponent(token)}&userId=${encodeURIComponent(user.id)}&username=${encodeURIComponent(user.username)}`);
+    } catch (error: any) {
+        console.error('Apple callback error:', error);
+        res.redirect('/?error=apple_auth_failed');
+    }
+});
+
+// Direct Apple token verification (for native apps)
+router.post('/apple/verify', async (req: any, res: any) => {
+    try {
+        const { idToken } = req.body;
+
+        if (!idToken) {
+            return res.status(400).json({ error: 'ID Token required' });
+        }
+
+        // Decode Apple's identity token
+        const tokenParts = idToken.split('.');
+        if (tokenParts.length !== 3) {
+            return res.status(400).json({ error: 'Invalid Apple token format' });
+        }
+
+        const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64url').toString());
+        const email = payload.email;
+
+        if (!email) {
+            return res.status(400).json({ error: 'No email in Apple token' });
+        }
+
+        // Check if user exists
+        const userExists = await userService.userExists(email);
+        if (!userExists) {
+            return res.status(403).json({
+                error: 'Account not found. Please sign up first.',
+                needsSignup: true
+            });
+        }
+
+        const user = await userService.findOrCreateGoogleUser({
+            email,
+            name: email.split('@')[0],
+            sub: `apple_${payload.sub}`,
+            email_verified: payload.email_verified !== false
+        } as any);
+
+        // Check 2FA
+        const twoFactorStatus = await userService.getTwoFactorStatus(user.id);
+        if (twoFactorStatus.enabled) {
+            return res.json({ mfaRequired: true, userId: user.id, username: user.username });
+        }
+
+        const token = jwt.sign({ id: user.id, username: user.username, isAdmin: !!user.isAdmin }, JWT_SECRET);
+
+        await auditLogger.log({
+            userId: user.id,
+            username: user.username,
+            action: 'apple_login',
+            status: 'success'
+        });
+
+        res.json({ token, user });
+    } catch (error: any) {
+        console.error('Apple verify error:', error);
+        res.status(401).json({ error: 'Apple authentication failed' });
+    }
+});
 
 export default router;

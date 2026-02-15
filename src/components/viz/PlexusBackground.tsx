@@ -10,7 +10,6 @@ interface Particle {
 
 export const PlexusBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const mouseRef = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -23,7 +22,6 @@ export const PlexusBackground: React.FC = () => {
     let particles: Particle[] = [];
     const particleCount = 100;
     const connectionDistance = 150;
-    const mouseRadius = 200;
 
     const resize = () => {
       canvas.width = window.innerWidth;
@@ -56,16 +54,6 @@ export const PlexusBackground: React.FC = () => {
         if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
         if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
 
-        // Mouse interaction (gentle attraction)
-        const dx = mouseRef.current.x - p.x;
-        const dy = mouseRef.current.y - p.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-
-        if (dist < mouseRadius) {
-          p.x += dx * 0.01;
-          p.y += dy * 0.01;
-        }
-
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fillStyle = 'rgba(56, 163, 165, 0.5)';
@@ -93,19 +81,13 @@ export const PlexusBackground: React.FC = () => {
       animationFrameId = requestAnimationFrame(draw);
     };
 
-    const handleMouseMove = (e: MouseEvent) => {
-      mouseRef.current = { x: e.clientX, y: e.clientY };
-    };
-
     window.addEventListener('resize', resize);
-    window.addEventListener('mousemove', handleMouseMove);
 
     resize();
     draw();
 
     return () => {
       window.removeEventListener('resize', resize);
-      window.removeEventListener('mousemove', handleMouseMove);
       cancelAnimationFrame(animationFrameId);
     };
   }, []);

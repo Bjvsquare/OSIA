@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppLayout } from './components/layout/AppLayout';
@@ -18,6 +19,7 @@ import { SettingsPage } from './features/settings/SettingsPage';
 import { AdminPage } from './features/admin/AdminPage';
 import { AdminRoute } from './features/admin/AdminRoute';
 import { useAuth } from './features/auth/AuthContext';
+import { FocusGateModal } from './features/auth/FocusGateModal';
 import { AccountTypeSelector } from './features/auth/AccountTypeSelector';
 import { Scene } from './components/canvas/Scene';
 import { FoundingCircleLanding } from './features/founding/FoundingCircleLanding';
@@ -63,18 +65,33 @@ import type { ReactNode } from 'react';
 
 // Guard routes that require authentication AND onboarding completion
 function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { auth, isLoading } = useAuth();
+  const { auth, isLoading, logout } = useAuth();
+  const [focusChecked, setFocusChecked] = useState(() => {
+    return sessionStorage.getItem('OSIA_focus_checked') === 'true';
+  });
 
-  if (isLoading) return null; // Or a global loader
+  if (isLoading) return null;
 
   if (!auth.isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  // If authenticated but not onboarded, redirect to onboarding 
-  // (unless already on a path that is part of onboarding)
   if (!auth.onboardingCompleted) {
     return <Navigate to="/onboarding" replace />;
+  }
+
+  if (!focusChecked) {
+    return (
+      <FocusGateModal
+        onEnter={() => {
+          sessionStorage.setItem('OSIA_focus_checked', 'true');
+          setFocusChecked(true);
+        }}
+        onExit={() => {
+          logout();
+        }}
+      />
+    );
   }
 
   return <>{children}</>;

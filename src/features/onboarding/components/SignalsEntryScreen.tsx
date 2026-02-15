@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Card } from '../../../components/ui/Card';
 import { Button } from '../../../components/ui/Button';
-import { Input } from '../../../components/ui/Input';
 
 interface SignalsEntryScreenProps {
     onComplete: (data: any) => void;
@@ -15,14 +14,24 @@ export const SignalsEntryScreen: React.FC<SignalsEntryScreenProps> = ({ onComple
         energize: [],
         drain: []
     });
-    const [customWord, setCustomWord] = useState('');
-    const [situation, setSituation] = useState('');
+
+    const limits: Record<string, number> = {
+        best: 5,
+        pressure: 5,
+        energize: 3,
+        drain: 3
+    };
 
     const toggleWord = (bucket: string, word: string) => {
         setSelectedWords(prev => {
             const current = prev[bucket];
             if (current.includes(word)) {
                 return { ...prev, [bucket]: current.filter(w => w !== word) };
+            }
+            // Enforce max selection limit
+            const max = limits[bucket] || 5;
+            if (current.length >= max) {
+                return prev; // Don't add more
             }
             return { ...prev, [bucket]: [...current, word] };
         });
@@ -35,13 +44,24 @@ export const SignalsEntryScreen: React.FC<SignalsEntryScreenProps> = ({ onComple
         drain: ["Ambiguity without context", "Conflict avoidance", "Constant urgency", "Micromanagement", "Unclear expectations", "Over-socialising", "Isolation", "Repetitive tasks", "High emotional tension"]
     };
 
+    const renderCounter = (bucket: string) => {
+        const count = selectedWords[bucket].length;
+        const max = limits[bucket];
+        const isFull = count >= max;
+        return (
+            <span className={`text-[9px] font-bold uppercase tracking-widest ${isFull ? 'text-osia-teal-500' : 'text-osia-neutral-600'}`}>
+                {count}/{max} selected
+            </span>
+        );
+    };
+
     return (
         <div className="max-w-5xl mx-auto space-y-12 py-12 px-6 animate-in fade-in duration-700">
             {/* Header */}
             <header className="text-center space-y-6 max-w-2xl mx-auto">
                 <img src="/logo.png" alt="OSIA" className="h-6 w-auto mx-auto opacity-80" />
                 <h1 className="text-4xl font-extrabold tracking-tight text-white leading-tight">
-                    Let’s start with a<br />few small signals<span className="text-osia-teal-500">.</span>
+                    Let's start with a<br />few small signals<span className="text-osia-teal-500">.</span>
                 </h1>
                 <p className="text-osia-neutral-400 text-sm font-medium">
                     There are no right answers here. Share what feels easy — you can skip anything.
@@ -55,111 +75,108 @@ export const SignalsEntryScreen: React.FC<SignalsEntryScreenProps> = ({ onComple
                 {/* Bucket 1: Best */}
                 <Card className="p-6 space-y-6">
                     <div className="space-y-1">
-                        <h4 className="text-sm font-bold text-white">When you’re at your best, which words fit you?</h4>
+                        <div className="flex items-center justify-between">
+                            <h4 className="text-sm font-bold text-white">When you're at your best, which words fit you?</h4>
+                            {renderCounter('best')}
+                        </div>
                         <p className="text-[10px] text-osia-neutral-500 italic">Choose up to 5. Go with what feels true, not ideal.</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                        {wordOptions.best.map(word => (
-                            <button
-                                key={word}
-                                onClick={() => toggleWord('best', word)}
-                                className={`tag-glow ${selectedWords.best.includes(word) ? 'tag-glow-active' : ''}`}
-                            >
-                                {word}
-                            </button>
-                        ))}
-                    </div>
-                    <div className="space-y-2 pt-2 border-t border-white/5">
-                        <label className="text-[10px] text-osia-neutral-500 font-bold uppercase tracking-widest">You can add your own words if none fit.</label>
-                        <div className="flex gap-2">
-                            <Input
-                                placeholder="Add your own word..."
-                                value={customWord}
-                                onChange={e => setCustomWord(e.target.value)}
-                                className="h-9 text-xs bg-white/[0.02]"
-                            />
-                            <Button size="sm" variant="outline" className="h-9 px-4" onClick={() => {
-                                if (customWord.trim()) {
-                                    toggleWord('best', customWord.trim());
-                                    setCustomWord('');
-                                }
-                            }}>Add</Button>
-                        </div>
+                        {wordOptions.best.map(word => {
+                            const isSelected = selectedWords.best.includes(word);
+                            const isFull = selectedWords.best.length >= limits.best;
+                            return (
+                                <button
+                                    key={word}
+                                    onClick={() => toggleWord('best', word)}
+                                    disabled={!isSelected && isFull}
+                                    className={`tag-glow ${isSelected ? 'tag-glow-active' : ''} ${!isSelected && isFull ? 'opacity-30 cursor-not-allowed' : ''}`}
+                                >
+                                    {word}
+                                </button>
+                            );
+                        })}
                     </div>
                 </Card>
 
-                {/* Bucket 3: Energize */}
+                {/* Bucket 2: Energize */}
                 <Card className="p-6 space-y-6">
                     <div className="space-y-1">
-                        <h4 className="text-sm font-bold text-white">What tends to energise you?</h4>
+                        <div className="flex items-center justify-between">
+                            <h4 className="text-sm font-bold text-white">What tends to energise you?</h4>
+                            {renderCounter('energize')}
+                        </div>
                         <p className="text-[10px] text-osia-neutral-500 italic">Choose up to 3.</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                        {wordOptions.energize.map(word => (
-                            <button
-                                key={word}
-                                onClick={() => toggleWord('energize', word)}
-                                className={`tag-glow ${selectedWords.energize.includes(word) ? 'tag-glow-active' : ''}`}
-                            >
-                                {word}
-                            </button>
-                        ))}
+                        {wordOptions.energize.map(word => {
+                            const isSelected = selectedWords.energize.includes(word);
+                            const isFull = selectedWords.energize.length >= limits.energize;
+                            return (
+                                <button
+                                    key={word}
+                                    onClick={() => toggleWord('energize', word)}
+                                    disabled={!isSelected && isFull}
+                                    className={`tag-glow ${isSelected ? 'tag-glow-active' : ''} ${!isSelected && isFull ? 'opacity-30 cursor-not-allowed' : ''}`}
+                                >
+                                    {word}
+                                </button>
+                            );
+                        })}
                     </div>
                 </Card>
 
-                {/* Bucket 2: Pressure */}
+                {/* Bucket 3: Pressure */}
                 <Card className="p-6 space-y-6">
                     <div className="space-y-1">
-                        <h4 className="text-sm font-bold text-white">When you’re under pressure, which words tend to show up?</h4>
-                        <p className="text-[10px] text-osia-neutral-500 italic">Again, choose up to 5. This isn’t a flaw list — just noticing patterns.</p>
+                        <div className="flex items-center justify-between">
+                            <h4 className="text-sm font-bold text-white">When you're under pressure, which words tend to show up?</h4>
+                            {renderCounter('pressure')}
+                        </div>
+                        <p className="text-[10px] text-osia-neutral-500 italic">Choose up to 5. This isn't a flaw list — just noticing patterns.</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                        {wordOptions.pressure.map(word => (
-                            <button
-                                key={word}
-                                onClick={() => toggleWord('pressure', word)}
-                                className={`tag-glow ${selectedWords.pressure.includes(word) ? 'tag-glow-active' : ''}`}
-                            >
-                                {word}
-                            </button>
-                        ))}
+                        {wordOptions.pressure.map(word => {
+                            const isSelected = selectedWords.pressure.includes(word);
+                            const isFull = selectedWords.pressure.length >= limits.pressure;
+                            return (
+                                <button
+                                    key={word}
+                                    onClick={() => toggleWord('pressure', word)}
+                                    disabled={!isSelected && isFull}
+                                    className={`tag-glow ${isSelected ? 'tag-glow-active' : ''} ${!isSelected && isFull ? 'opacity-30 cursor-not-allowed' : ''}`}
+                                >
+                                    {word}
+                                </button>
+                            );
+                        })}
                     </div>
                 </Card>
 
                 {/* Bucket 4: Drain */}
                 <Card className="p-6 space-y-6">
                     <div className="space-y-1">
-                        <h4 className="text-sm font-bold text-white">What tends to drain you?</h4>
+                        <div className="flex items-center justify-between">
+                            <h4 className="text-sm font-bold text-white">What tends to drain you?</h4>
+                            {renderCounter('drain')}
+                        </div>
                         <p className="text-[10px] text-osia-neutral-500 italic">Choose up to 3.</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                        {wordOptions.drain.map(word => (
-                            <button
-                                key={word}
-                                onClick={() => toggleWord('drain', word)}
-                                className={`tag-glow ${selectedWords.drain.includes(word) ? 'tag-glow-active' : ''}`}
-                            >
-                                {word}
-                            </button>
-                        ))}
-                    </div>
-                </Card>
-
-                {/* Optional Situation */}
-                <Card className="p-6 space-y-4 md:col-span-2">
-                    <div className="space-y-1">
-                        <h4 className="text-sm font-bold text-white">Optional: think of a recent situation that stands out.</h4>
-                        <p className="text-[10px] text-osia-neutral-500 italic">A sentence or two is enough. You can also skip this.</p>
-                    </div>
-                    <Input
-                        as="textarea"
-                        placeholder="For example: a decision, a conversation, or a moment of friction..."
-                        value={situation}
-                        onChange={e => setSituation(e.target.value)}
-                        className="bg-white/[0.02]"
-                    />
-                    <div className="text-[9px] text-osia-neutral-600 font-bold uppercase tracking-widest text-right">
-                        1–3 sentences is plenty. This stays private unless you explicitly choose to share it later.
+                        {wordOptions.drain.map(word => {
+                            const isSelected = selectedWords.drain.includes(word);
+                            const isFull = selectedWords.drain.length >= limits.drain;
+                            return (
+                                <button
+                                    key={word}
+                                    onClick={() => toggleWord('drain', word)}
+                                    disabled={!isSelected && isFull}
+                                    className={`tag-glow ${isSelected ? 'tag-glow-active' : ''} ${!isSelected && isFull ? 'opacity-30 cursor-not-allowed' : ''}`}
+                                >
+                                    {word}
+                                </button>
+                            );
+                        })}
                     </div>
                 </Card>
             </div>
@@ -174,7 +191,7 @@ export const SignalsEntryScreen: React.FC<SignalsEntryScreenProps> = ({ onComple
 
             {/* Actions */}
             <footer className="pt-8 text-center flex flex-col items-center gap-6">
-                <Button variant="primary" size="lg" className="px-16" onClick={() => onComplete({ selectedWords, situation })}>
+                <Button variant="primary" size="lg" className="px-16" onClick={() => onComplete({ selectedWords })}>
                     Generate my first insights
                 </Button>
                 <button onClick={onSkip} className="text-xs font-bold text-osia-neutral-400 hover:text-white underline underline-offset-8 decoration-white/10 transition-all">

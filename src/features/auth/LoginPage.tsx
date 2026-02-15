@@ -9,6 +9,7 @@ import { useAuth } from './AuthContext';
 import { CheckEmailScreen } from './components/CheckEmailScreen';
 import { ExpiredLinkScreen } from './components/ExpiredLinkScreen';
 import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
+import { Apple } from 'lucide-react';
 
 type AuthState = 'WELCOME' | 'CHECK_EMAIL' | 'SIGNING_IN' | 'MFA_REQUIRED' | 'EXPIRED';
 
@@ -58,6 +59,35 @@ export function LoginPage() {
             navigate('/welcome');
         } catch (err: any) {
             setError(err.message || 'Google authentication failed');
+            setAuthState('WELCOME');
+        }
+    };
+
+    const handleAppleSignIn = async () => {
+        setAuthState('SIGNING_IN');
+        setError('');
+        try {
+            // Apple Sign-In uses a redirect-based flow
+            const clientId = import.meta.env.VITE_APPLE_CLIENT_ID;
+            if (!clientId) {
+                throw new Error('Apple Sign-In is not configured yet. Please check back soon.');
+            }
+            const redirectUri = `${window.location.origin}/api/auth/apple/callback`;
+            const state = crypto.randomUUID();
+            sessionStorage.setItem('apple_auth_state', state);
+
+            const params = new URLSearchParams({
+                client_id: clientId,
+                redirect_uri: redirectUri,
+                response_type: 'code id_token',
+                scope: 'name email',
+                response_mode: 'form_post',
+                state
+            });
+
+            window.location.href = `https://appleid.apple.com/auth/authorize?${params.toString()}`;
+        } catch (err: any) {
+            setError(err.message || 'Apple Sign-In failed');
             setAuthState('WELCOME');
         }
     };
@@ -235,6 +265,14 @@ export function LoginPage() {
                                             text="signin_with"
                                         />
                                     </div>
+
+                                    <button
+                                        onClick={handleAppleSignIn}
+                                        className="w-full flex items-center justify-center gap-3 px-6 py-3 rounded-full bg-white text-black font-semibold text-sm hover:bg-gray-100 transition-colors"
+                                    >
+                                        <Apple size={18} fill="black" />
+                                        <span>Sign in with Apple</span>
+                                    </button>
                                 </div>
 
                                 <div className="space-y-6 pt-6 border-t border-white/5 text-center">

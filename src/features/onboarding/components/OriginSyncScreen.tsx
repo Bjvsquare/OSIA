@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '../../../components/ui/Card';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { Label } from '../../../components/ui/Label';
-import { MapPin, Clock, Calendar, Sparkles, Loader2 } from 'lucide-react';
+import { MapPin, Clock, Calendar, Sparkles, Loader2, CheckCircle2, Shield, Lock } from 'lucide-react';
 import { api } from '../../../services/api';
 import { useAuth } from '../../auth/AuthContext';
 
@@ -17,12 +17,28 @@ export const OriginSyncScreen: React.FC<OriginSyncScreenProps> = ({ onComplete }
     const [time, setTime] = useState('12:00');
     const [location, setLocation] = useState('');
     const [isSyncing, setIsSyncing] = useState(false);
+    const [syncError, setSyncError] = useState<string | null>(null);
 
     // Location search state
     const [searchTimeout, setSearchTimeout] = useState<any>(null);
     const [locationSuggestions, setLocationSuggestions] = useState<any[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [selectedLocation, setSelectedLocation] = useState<{ lat: number, lng: number } | null>(null);
+
+    // Pre-fill from user profile if data was already collected during signup
+    useEffect(() => {
+        if (userProfile) {
+            const profile = userProfile as any;
+            if (profile.birthDate) setDate(profile.birthDate);
+            if (profile.birthTime) setTime(profile.birthTime);
+            if (profile.birthLocation) {
+                setLocation(profile.birthLocation);
+                if (profile.latitude && profile.longitude) {
+                    setSelectedLocation({ lat: profile.latitude, lng: profile.longitude });
+                }
+            }
+        }
+    }, [userProfile]);
 
     const handleLocationSearch = async (query: string) => {
         setLocation(query);
@@ -43,7 +59,7 @@ export const OriginSyncScreen: React.FC<OriginSyncScreenProps> = ({ onComplete }
             } catch (error) {
                 console.error('Error fetching location:', error);
             }
-        }, 300); // 300ms debounce
+        }, 300);
 
         setSearchTimeout(timeout);
     };
@@ -59,6 +75,7 @@ export const OriginSyncScreen: React.FC<OriginSyncScreenProps> = ({ onComplete }
 
     const handleSync = async () => {
         setIsSyncing(true);
+        setSyncError(null);
         try {
             await api.saveAnswer({
                 user_id: userProfile?.id || 'anonymous',
@@ -89,10 +106,15 @@ export const OriginSyncScreen: React.FC<OriginSyncScreenProps> = ({ onComplete }
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.error || 'Foundational sync failed');
+                // If already seeded, treat as success and proceed
+                if (errorData.error?.includes('already') || response.status === 409) {
+                    console.log('[OriginSync] Data already seeded, proceeding...');
+                } else {
+                    throw new Error(errorData.error || 'Foundational sync failed');
+                }
             }
 
-            // Artificial delay for UX "quantum mapping" effect
+            // Short delay for UX effect then proceed
             setTimeout(async () => {
                 await refreshProfile();
                 setIsSyncing(false);
@@ -100,7 +122,7 @@ export const OriginSyncScreen: React.FC<OriginSyncScreenProps> = ({ onComplete }
             }, 1000);
         } catch (err: any) {
             console.error("Sync failed:", err);
-            alert(err.message || "We encountered an issue during pattern initialization. Please try again.");
+            setSyncError(err.message || "We encountered an issue during pattern initialization.");
             setIsSyncing(false);
         }
     };
@@ -182,6 +204,34 @@ export const OriginSyncScreen: React.FC<OriginSyncScreenProps> = ({ onComplete }
                     )}
                 </div>
 
+                {/* Error with recovery options */}
+                {syncError && (
+                    <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl space-y-3">
+                        <p className="text-sm text-red-400">{syncError}</p>
+                        <div className="flex gap-3">
+                            <Button
+                                variant="primary"
+                                size="sm"
+                                onClick={handleSync}
+                                className="text-xs"
+                            >
+                                Try Again
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                    setSyncError(null);
+                                    onComplete();
+                                }}
+                                className="text-xs text-osia-neutral-400 hover:text-white"
+                            >
+                                Skip for Now
+                            </Button>
+                        </div>
+                    </div>
+                )}
+
                 <div className="pt-4">
                     <Button
                         variant="primary"
@@ -208,11 +258,11 @@ export const OriginSyncScreen: React.FC<OriginSyncScreenProps> = ({ onComplete }
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
-                    { label: "Foundational Precision", icon: Sparkles },
-                    { label: "Zero PII Storage", icon: Clock },
-                    { label: "High Fidelity Model", icon: MapPin }
+                    { label: "Foundational Precision", icon: Sparkles, tooltip: "Your birth data creates unique foundational patterns" },
+                    { label: "Private & Encrypted", icon: Lock, tooltip: "Your personal details are encrypted — we store patterns, not personal information" },
+                    { label: "High Fidelity Model", icon: MapPin, tooltip: "Location and time precision improves model accuracy" }
                 ].map((item, i) => (
-                    <div key={i} className="flex flex-col items-center text-center p-4 space-y-2 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all">
+                    <div key={i} className="flex flex-col items-center text-center p-4 space-y-2 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all" title={item.tooltip}>
                         <item.icon className="w-6 h-6 text-osia-teal-500" />
                         <span className="text-[9px] font-black uppercase text-white tracking-widest">{item.label}</span>
                     </div>

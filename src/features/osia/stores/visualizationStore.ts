@@ -134,7 +134,7 @@ export const useVisualizationStore = create<VisualizationStore>((set, get) => ({
                 users: [{
                     id: output.snapshot.userId,
                     name: 'You',
-                    personalityType: 'Sentari Intelligent System',
+                    personalityType: 'OSIA Intelligent System',
                     colorTheme: '#38bdf8',
                 }],
                 centralCore,

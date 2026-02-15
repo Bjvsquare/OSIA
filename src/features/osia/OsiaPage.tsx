@@ -34,7 +34,7 @@ export function OsiaPage() {
 
             {/* Title Bar */}
             <div className="osia-title-bar">
-                <span className="osia-title-text">SENTARI VISION</span>
+                <span className="osia-title-text">OSIA VISION</span>
                 <span className="osia-title-mode">{viewMode.toUpperCase()}</span>
             </div>
 

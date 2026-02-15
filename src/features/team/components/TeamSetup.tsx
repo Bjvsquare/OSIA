@@ -22,104 +22,104 @@ const TEAM_TYPES = [
 const TEAM_TYPE_CONFIG: Record<string, any[]> = {
     Corporate: [
         {
-            theme: 'Velocity & Delivery',
-            description: 'Focus on output and deadlines',
-            options: ['90%+ Sprint Velocity', 'On-time Project delivery', 'High-priority task completion', 'Stabilized release cycles']
+            theme: 'Alignment & Clarity',
+            description: 'How well the team understands its shared direction',
+            options: ['Everyone knows why their work matters', 'Decisions happen without bottlenecks', 'Priorities are clear and shared', 'Goals connect to real outcomes']
         },
         {
-            theme: 'Efficiency & Quality',
-            description: 'How the team maintains standards',
-            options: ['Zero critical bugs', '99.9% reliability', 'Tech debt reduction', 'Efficient resource use']
+            theme: 'Trust & Openness',
+            description: 'The quality of honesty and safety in the team',
+            options: ['People speak up without fear', 'Mistakes are learning moments, not blame', 'Disagreements lead to better ideas', 'Help is asked for and given freely']
         },
         {
-            theme: 'Collective Climate',
-            description: 'Team morale and psychology',
-            options: ['High morale & engagement', 'Deep psychological safety', 'Effective syncs', 'Zero burnout indicators']
+            theme: 'Sustainable Momentum',
+            description: 'How the team moves without burning out',
+            options: ['Consistent output without overtime culture', 'Recovery time is respected', 'Workload is distributed fairly', 'Progress feels steady, not frantic']
         }
     ],
     Sport: [
         {
-            theme: 'On-Field Performance',
-            description: 'Direct competitive results',
-            options: ['Increased win percentage', 'Tactical execution precision', 'Peak physical readiness', 'Reduced injury rate']
+            theme: 'Collective Mindset',
+            description: 'The mental edge and shared belief of the team',
+            options: ['Players lift each other under pressure', 'Confidence grows from preparation', 'The team identity is stronger than any individual', 'Setbacks fuel comeback energy']
         },
         {
-            theme: 'Unit Cohesion',
-            description: 'Communication and chemistry',
-            options: ['Deep on-field communication', 'Roles & responsibilities clarity', 'High collective resilience', 'Positive locker room culture']
+            theme: 'On-Field Connection',
+            description: 'How players read and respond to each other',
+            options: ['Communication is instinctive, not forced', 'Roles are owned, not just assigned', 'Adaptability in live situations', 'Support runs happen without being asked']
         },
         {
-            theme: 'Training Integrity',
-            description: 'Standards of preparation',
-            options: ['100% training attendance', 'New tactic mastery', 'Optimal load management', 'Video review compliance']
+            theme: 'Growth Culture',
+            description: 'How the squad develops over time',
+            options: ['Honest feedback is normal, not personal', 'Young players feel genuinely welcomed', 'Training intensity matches match-day desire', 'Individual development serves the collective']
         }
     ],
     Education: [
         {
-            theme: 'Student Engagement',
-            description: 'Learning outcomes and participation',
-            options: ['90%+ Student attendance', 'Learning goal achievement', 'High participation', 'Positive peer feedback']
+            theme: 'Learning That Sticks',
+            description: 'Are students genuinely engaged and growing?',
+            options: ['Students ask questions that surprise you', 'Understanding deepens, not just grades', 'Curiosity outlasts the classroom', 'Students connect ideas across subjects']
         },
         {
-            theme: 'Curricular Integrity',
-            description: 'Quality of materials and delivery',
-            options: ['Full syllabus coverage', 'Material relevance', 'Effective assessments', 'Teaching innovation']
+            theme: 'Staff Synergy',
+            description: 'How well the teaching team collaborates',
+            options: ['Teachers share what works and what doesn\'t', 'Planning is collaborative, not siloed', 'Workload feels manageable and purposeful', 'Innovation is encouraged, not just tolerated']
         },
         {
-            theme: 'Faculty Climate',
-            description: 'Internal alignment and health',
-            options: ['High teacher engagement', 'Collaborative planning', 'Research output growth', 'Student success focus']
+            theme: 'Inclusive Environment',
+            description: 'Does every learner feel they belong?',
+            options: ['Every student feels seen and heard', 'Different learning styles are actively supported', 'Struggles are met with patience, not judgment', 'Success is celebrated in many forms']
         }
     ],
     Creative: [
         {
-            theme: 'Innovation Density',
-            description: 'Originality and exploration',
-            options: ['High unique idea volume', 'Successful iterations', 'Award-winning quality', 'Deep flow states']
+            theme: 'Creative Courage',
+            description: 'The team\'s willingness to take real creative risks',
+            options: ['Wild ideas get genuine consideration', 'Failure is part of the creative process', 'The team pushes past safe and familiar', 'Inspiration comes from unexpected places']
         },
         {
-            theme: 'Collaborative Sync',
-            description: 'Cross-disciplinary harmony',
-            options: ['Seamless art/tech integration', 'Aesthetic alignment', 'Efficient feedback loops', 'High artistic morale']
+            theme: 'Creative Flow',
+            description: 'How well the team enters and sustains deep work',
+            options: ['Uninterrupted creative time is protected', 'Collaboration amplifies individual strengths', 'Feedback improves work without killing spirit', 'The team knows when to converge and diverge']
         },
         {
-            theme: 'Project Milestone',
-            description: 'Steady creative progress',
-            options: ['Draft/Prototype on time', 'Client approval rate', 'Asset library growth', 'Concept convergence']
+            theme: 'Craft & Standards',
+            description: 'The quality bar the team holds itself to',
+            options: ['Details are cared for, not just deadlines', 'The work reflects genuine pride', 'Skills are continuously sharpened', 'Craft is valued over speed']
         }
     ],
     Healthcare: [
         {
-            theme: 'Patient Outcomes',
-            description: 'Care quality and safety',
-            options: ['Zero medical errors', 'High patient satisfaction', 'Reduced recovery times', 'Protocol compliance']
+            theme: 'Patient-Centred Care',
+            description: 'How the team serves those who need them',
+            options: ['Patients feel heard, not processed', 'Care decisions are thoughtful, not rushed', 'Handoffs preserve context and dignity', 'Families are treated as partners']
         },
         {
-            theme: 'System Resilience',
-            description: 'Resource and staff health',
-            options: ['Staff burnout reduction', 'Efficient bed management', 'Safety audit success', 'Rapid crisis response']
+            theme: 'Team Resilience',
+            description: 'How staff sustain themselves through demanding work',
+            options: ['Emotional load is shared, not carried alone', 'Rest is treated as essential, not optional', 'Difficult cases are debriefed together', 'Compassion fatigue is openly addressed']
         },
         {
-            theme: 'Clinical Accuracy',
-            description: 'Precision in medical practice',
-            options: ['Diagnostic accuracy', 'Treatment plan adherence', 'Research/Data integrity', 'Care coordination']
+            theme: 'Safety & Precision',
+            description: 'The culture of accuracy and accountability',
+            options: ['Near-misses are reported without blame', 'Protocols are followed because they\'re understood', 'Questions are welcomed at every level', 'Continuous learning is built into the day']
         }
     ],
     Other: [
         {
-            theme: 'Momentum',
-            description: 'General progress indicators',
-            options: ['Goal achievement', 'Standard reliability', 'High throughput', 'Efficiency gains']
+            theme: 'Shared Direction',
+            description: 'Does the team know where it\'s going and why?',
+            options: ['Purpose is clear and genuinely shared', 'Each person knows how they contribute', 'Progress is visible and celebrated', 'Course corrections happen quickly']
         },
         {
-            theme: 'Climate',
-            description: 'How the team feels',
-            options: ['High team morale', 'Psychological safety', 'Effective communication', 'Low friction']
+            theme: 'Team Health',
+            description: 'How people feel about being on this team',
+            options: ['People enjoy working together', 'Conflict is handled, not avoided', 'Everyone\'s voice carries weight', 'Energy levels stay sustainable']
         },
         {
-            theme: 'Execution',
-            description: 'Operational standards',
-            options: ['Deadline compliance', 'Quality consistency', 'Budget adherence', 'Process innovation']
+            theme: 'Execution Quality',
+            description: 'How well intentions become outcomes',
+            options: ['Commitments are kept consistently', 'Quality is a habit, not an afterthought', 'Processes serve people, not the other way around', 'Learning from what didn\'t work is normalised']
         }
     ]
 };

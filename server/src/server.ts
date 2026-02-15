@@ -173,11 +173,27 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`Binding: 0.0.0.0:${PORT}`);
 
-  // Verify DB connections in background
-  setTimeout(() => {
+  // Verify DB connections and auto-setup admin in background
+  setTimeout(async () => {
     console.log('[INFO] Starting background connectivity checks...');
     neo4jService.verifyConnectivity().catch(err => console.error('[Neo4j] Background connectivity check failed:', err));
     supabaseService.verifyConnectivity().catch(err => console.error('[Supabase] Background connectivity check failed:', err));
+
+    // Auto-promote first user to admin if no admin exists yet
+    try {
+      const db = require('./db/JsonDb').default;
+      const users = await db.getCollection('users');
+      if (Array.isArray(users) && users.length > 0) {
+        const hasAdmin = users.some((u: any) => u.isAdmin === true);
+        if (!hasAdmin) {
+          users[0].isAdmin = true;
+          await db.saveCollection('users', users);
+          logToDisk(`[Admin] Auto-promoted first user "${users[0].username}" to admin (no admin existed)`);
+        }
+      }
+    } catch (e: any) {
+      logToDisk(`[Admin] Auto-admin setup skipped: ${e.message}`);
+    }
   }, 1000);
 });
 

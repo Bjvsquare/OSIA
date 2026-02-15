@@ -104,7 +104,10 @@ export class TeamService {
         }
 
         const memberCount = team.members.length;
-        const threshold = Math.max(3, Math.floor((team.expectedSize || 5) * 0.25));
+        // Threshold: for small teams (≤3), need at least the current count (no suppression — too small for anonymity to matter).
+        // For larger teams, need 25% of expected (min 2). Never suppress beyond what the team can actually reach.
+        const expectedSize = team.expectedSize || 5;
+        const threshold = expectedSize <= 3 ? memberCount : Math.min(Math.max(2, Math.floor(expectedSize * 0.25)), expectedSize);
 
         // Suppression logic
         if (memberCount < threshold) {

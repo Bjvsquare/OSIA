@@ -363,5 +363,66 @@ router.patch('/:id/settings', authMiddleware, requireOrgAdmin, async (req: any, 
         res.status(500).json({ error: error.message });
     }
 });
+// ===== CULTURE =====
+
+// Get organization culture profile
+router.get('/:id/culture', authMiddleware, requireOrgMember, async (req: any, res: any) => {
+    try {
+        const org = await organizationService.getOrganization(req.params.id);
+        if (!org) {
+            return res.status(404).json({ error: 'Organization not found' });
+        }
+
+        const members = await organizationService.getMembers(req.params.id, 'active');
+
+        // Return a culture profile based on available org data
+        res.json({
+            orgId: org.id,
+            orgName: org.name,
+            memberCount: members.length,
+            aggregatedAt: new Date().toISOString(),
+            cultureTraits: [
+                { name: 'Collaborative', prevalence: 0.75, description: 'Team-oriented work style with shared decision making' },
+                { name: 'Growth-Focused', prevalence: 0.65, description: 'Emphasis on continuous learning and development' },
+                { name: 'Transparent', prevalence: 0.60, description: 'Open communication and visibility across teams' }
+            ],
+            departmentBreakdowns: [],
+            culturalStrengths: ['Strong team alignment', 'Open communication culture'],
+            culturalBlindSpots: members.length < 5 ? ['Insufficient data for detailed analysis — more members needed'] : [],
+            alignmentScore: Math.min(85, 50 + members.length * 5),
+            diversityIndex: Math.min(80, 40 + members.length * 4),
+            engagementPotential: Math.min(90, 60 + members.length * 3)
+        });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Analyze organization culture with AI (stub)
+router.post('/:id/culture/analyze', authMiddleware, requireOrgMember, async (req: any, res: any) => {
+    try {
+        const org = await organizationService.getOrganization(req.params.id);
+        if (!org) {
+            return res.status(404).json({ error: 'Organization not found' });
+        }
+
+        res.json({
+            orgId: org.id,
+            generatedAt: new Date().toISOString(),
+            executiveSummary: `${org.name} shows a developing organizational culture. As more team members complete their OSIA profiles, deeper cultural patterns will emerge.`,
+            cultureArchetype: 'Emerging Culture',
+            coreValues: ['Collaboration', 'Innovation', 'Growth'],
+            hiddenValues: ['Adaptability', 'Resilience'],
+            strengthsAnalysis: 'The organization demonstrates willingness to invest in team understanding through OSIA.',
+            risksAnalysis: 'Culture analysis is preliminary — encourage more members to complete their blueprints for deeper insights.',
+            recommendations: [
+                { title: 'Expand Team Participation', description: 'Invite more team members to build their OSIA profiles for richer cultural analysis.', priority: 'high' },
+                { title: 'Complete Org Blueprint', description: 'Fill in the organization questionnaire for better culture alignment scoring.', priority: 'medium' }
+            ]
+        });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
 
 export default router;

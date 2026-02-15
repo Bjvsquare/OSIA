@@ -23,7 +23,11 @@ export function HypothesisTester({ onComplete }: { onComplete: () => void }) {
         const load = async () => {
             try {
                 const data = await api.getHypotheses();
-                setHypotheses(data);
+                // Only show the top 5 most significant hypotheses
+                const top5 = data
+                    .sort((a: TraitProbability, b: TraitProbability) => (b.confidence || 0) - (a.confidence || 0))
+                    .slice(0, 5);
+                setHypotheses(top5);
             } catch (err) {
                 console.error("Failed to load hypotheses:", err);
             } finally {
@@ -80,8 +84,8 @@ export function HypothesisTester({ onComplete }: { onComplete: () => void }) {
         return (
             <div className="max-w-2xl mx-auto py-24 text-center space-y-4">
                 <Loader2 className="w-12 h-12 text-osia-teal-500 animate-spin mx-auto" />
-                <h2 className="text-2xl font-bold text-white">Projecting your Intake Mirror...</h2>
-                <p className="text-osia-neutral-400">Calibrating signals to your 15 core layers.</p>
+                <h2 className="text-2xl font-bold text-white">Mapping your cognitive mirror...</h2>
+                <p className="text-osia-neutral-400">Calibrating signals to your 5 core layers.</p>
             </div>
         );
     }

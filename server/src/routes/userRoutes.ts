@@ -7,10 +7,18 @@ import { authMiddleware } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
+// Ensure uploads directory exists (Railway uses ephemeral FS)
+import fs from 'fs';
+const uploadsDir = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+    console.log('[Uploads] Created uploads directory at', uploadsDir);
+}
+
 // Configure storage
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'uploads/');
+        cb(null, uploadsDir);
     },
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);

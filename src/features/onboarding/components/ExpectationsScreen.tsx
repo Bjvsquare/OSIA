@@ -1,14 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '../../../components/ui/Card';
 import { Button } from '../../../components/ui/Button';
 import { useToast } from '../../../components/ui/Toast';
+import { X, Shield, Eye, Trash2, Lock } from 'lucide-react';
 
 interface ExpectationsScreenProps {
     onContinue: () => void;
 }
 
 export const ExpectationsScreen: React.FC<ExpectationsScreenProps> = ({ onContinue }) => {
-    const { showToast, ToastComponent } = useToast();
+    const { ToastComponent } = useToast();
+    const [showReadMore, setShowReadMore] = useState(false);
+
     return (
         <div className="max-w-2xl mx-auto space-y-12 py-12 px-6 animate-in fade-in duration-1000">
             {/* Header */}
@@ -115,19 +118,13 @@ export const ExpectationsScreen: React.FC<ExpectationsScreenProps> = ({ onContin
                             ))}
                         </ul>
                         <button
-                            onClick={() => {
-                                const el = document.getElementById('how-it-works-info');
-                                el?.scrollIntoView({ behavior: 'smooth' });
-                            }}
+                            onClick={() => setShowReadMore(true)}
                             className="text-[10px] font-bold text-osia-teal-500 hover:text-osia-teal-400 underline underline-offset-4 decoration-osia-teal-500/30 uppercase tracking-widest"
                         >
                             See how data and consent work →
                         </button>
                     </div>
                 </section>
-
-                {/* Hidden/Info section for scrolling */}
-                <div id="how-it-works-info" className="sr-only">Data Control Information</div>
             </div>
 
             {/* Footer Action */}
@@ -140,21 +137,119 @@ export const ExpectationsScreen: React.FC<ExpectationsScreenProps> = ({ onContin
                         Continue
                     </Button>
                     <button
-                        onClick={() => {
-                            const el = document.getElementById('expectation-details');
-                            el?.scrollIntoView({ behavior: 'smooth' });
-                        }}
+                        onClick={() => setShowReadMore(true)}
                         className="text-xs font-bold text-osia-neutral-400 hover:text-white underline underline-offset-8 decoration-white/10 transition-all"
                     >
                         I want to read more first
                     </button>
                 </div>
-                <div id="expectation-details" className="sr-only">Expectation Details</div>
                 <div className="text-[9px] text-osia-neutral-600 font-bold uppercase tracking-widest">
                     OSIA is built to support clarity, not certainty.
                 </div>
                 <ToastComponent />
             </footer>
+
+            {/* Read More Modal */}
+            {showReadMore && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-osia-deep-900 border border-white/10 rounded-2xl shadow-2xl">
+                        <div className="sticky top-0 bg-osia-deep-900/95 backdrop-blur-xl p-6 pb-4 border-b border-white/5 flex items-center justify-between">
+                            <h2 className="text-lg font-bold text-white">How OSIA Handles Your Data</h2>
+                            <button
+                                onClick={() => setShowReadMore(false)}
+                                className="p-2 rounded-lg hover:bg-white/5 transition-colors"
+                            >
+                                <X className="w-5 h-5 text-osia-neutral-400" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-8">
+                            {/* Data Philosophy */}
+                            <section className="space-y-3">
+                                <div className="flex items-center gap-2">
+                                    <Shield className="w-4 h-4 text-osia-teal-500" />
+                                    <h3 className="text-sm font-bold text-white uppercase tracking-widest">Data Philosophy</h3>
+                                </div>
+                                <p className="text-sm text-osia-neutral-400 leading-relaxed">
+                                    OSIA is built on the principle of <span className="text-white font-medium">data sovereignty</span> — you own your data, you control who sees it, and you can delete it entirely at any time.
+                                </p>
+                                <p className="text-sm text-osia-neutral-400 leading-relaxed">
+                                    We store <span className="text-white font-medium">patterns and insights</span>, not raw personal information. Your birth data is used to generate foundational patterns, then the raw data is encrypted. What remains is a numerical model — not identifiable information.
+                                </p>
+                            </section>
+
+                            {/* What We Collect */}
+                            <section className="space-y-3">
+                                <div className="flex items-center gap-2">
+                                    <Eye className="w-4 h-4 text-osia-teal-500" />
+                                    <h3 className="text-sm font-bold text-white uppercase tracking-widest">What We Collect</h3>
+                                </div>
+                                <div className="space-y-2">
+                                    {[
+                                        { label: "Foundational data", desc: "Date, time, and location of birth — used once to generate your origin pattern" },
+                                        { label: "Signal responses", desc: "Your word choices and reflections during calibration" },
+                                        { label: "Feedback", desc: "When you agree, disagree, or refine an insight" },
+                                        { label: "Usage patterns", desc: "How often you engage, to improve your experience" }
+                                    ].map((item, i) => (
+                                        <div key={i} className="p-3 bg-white/[0.02] rounded-lg border border-white/5">
+                                            <div className="text-xs font-bold text-white">{item.label}</div>
+                                            <div className="text-[11px] text-osia-neutral-500 mt-1">{item.desc}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+
+                            {/* Consent Model */}
+                            <section className="space-y-3">
+                                <div className="flex items-center gap-2">
+                                    <Lock className="w-4 h-4 text-osia-teal-500" />
+                                    <h3 className="text-sm font-bold text-white uppercase tracking-widest">Consent Model</h3>
+                                </div>
+                                <p className="text-sm text-osia-neutral-400 leading-relaxed">
+                                    OSIA uses <span className="text-white font-medium">granular, revocable consent</span>. You'll be asked to opt-in to each feature domain separately:
+                                </p>
+                                <ul className="space-y-2">
+                                    {[
+                                        "Personal Identity View — core self-awareness insights",
+                                        "Relational Connections — how you relate to others (optional)",
+                                        "Team Context — workplace dynamics (optional)",
+                                        "Research Participation — anonymous data for improving OSIA (optional)"
+                                    ].map((item, i) => (
+                                        <li key={i} className="flex gap-2 text-xs text-osia-neutral-400">
+                                            <span className="text-osia-teal-500 mt-0.5">•</span>
+                                            {item}
+                                        </li>
+                                    ))}
+                                </ul>
+                                <p className="text-xs text-osia-neutral-500 italic">
+                                    You can change your consent preferences at any time from your settings. Revoking consent will stop data collection for that domain immediately.
+                                </p>
+                            </section>
+
+                            {/* Data Deletion */}
+                            <section className="space-y-3">
+                                <div className="flex items-center gap-2">
+                                    <Trash2 className="w-4 h-4 text-red-400" />
+                                    <h3 className="text-sm font-bold text-white uppercase tracking-widest">Data Deletion</h3>
+                                </div>
+                                <p className="text-sm text-osia-neutral-400 leading-relaxed">
+                                    You can request complete data deletion at any time. This is <span className="text-white font-medium">permanent and irreversible</span> — all your patterns, insights, and personal data will be removed from our systems.
+                                </p>
+                            </section>
+                        </div>
+
+                        <div className="sticky bottom-0 p-6 pt-4 bg-osia-deep-900/95 backdrop-blur-xl border-t border-white/5">
+                            <Button
+                                variant="primary"
+                                onClick={() => setShowReadMore(false)}
+                                className="w-full"
+                            >
+                                Got it — close
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -26,6 +26,9 @@ export function OnboardingFlow() {
     const [loading, setLoading] = useState(true);
     const [subStep, setSubStep] = useState<string>('initial');
     const [isVoiceInteraction, setIsVoiceInteraction] = useState(false);
+    const [originSyncDone, setOriginSyncDone] = useState(() => {
+        return sessionStorage.getItem('OSIA_origin_sync_done') === 'true';
+    });
 
     const evaluateVisibility = (rule?: string) => {
         if (!rule) return true;
@@ -235,18 +238,20 @@ export function OnboardingFlow() {
     // URL-based routing logic
     if (location.pathname === '/welcome') {
         const hasConsent = state.consentLedger.length > 0;
-        const hasSignals = userProfile?.origin_seed_profile?.traits?.length > 0;
+        const hasSignals = userProfile?.origin_seed_profile?.traits?.length ? userProfile.origin_seed_profile.traits.length > 0 : false;
 
         if (subStep === 'initial') {
             if (hasConsent) {
-                // If they already have signals from signup, skip the entry screen
-                if (hasSignals) {
+                // If origin sync already done (this session or signals exist), skip
+                if (originSyncDone || hasSignals) {
                     navigate('/onboarding');
                     dispatch({ type: 'SET_STAGE', payload: 'BLUEPRINT' });
                     return null;
                 }
                 return (
                     <OriginSyncScreen onComplete={() => {
+                        sessionStorage.setItem('OSIA_origin_sync_done', 'true');
+                        setOriginSyncDone(true);
                         navigate('/onboarding');
                         setSubStep('initial');
                         dispatch({ type: 'SET_STAGE', payload: 'BLUEPRINT' });
@@ -306,8 +311,8 @@ export function OnboardingFlow() {
             );
         }
         if (subStep === 'origin_sync') {
-            // Check signals again after refresh
-            if (hasSignals) {
+            // Check if already done
+            if (originSyncDone || hasSignals) {
                 navigate('/onboarding');
                 setSubStep('initial');
                 dispatch({ type: 'SET_STAGE', payload: 'BLUEPRINT' });
@@ -317,9 +322,10 @@ export function OnboardingFlow() {
 
             return (
                 <OriginSyncScreen onComplete={() => {
+                    sessionStorage.setItem('OSIA_origin_sync_done', 'true');
+                    setOriginSyncDone(true);
                     navigate('/onboarding');
                     setSubStep('initial');
-                    // Shortcut: Skip Orientation questions and go straight to Blueprint
                     dispatch({ type: 'SET_STAGE', payload: 'BLUEPRINT' });
                     window.scrollTo(0, 0);
                 }} />
@@ -381,13 +387,14 @@ export function OnboardingFlow() {
     }
 
     if (state.currentStageId === 'BLUEPRINT') {
-        const hasOriginSeed = userProfile?.origin_seed_profile && userProfile.origin_seed_profile.traits;
+        const hasOriginSeed = originSyncDone || (userProfile?.origin_seed_profile && userProfile.origin_seed_profile.traits);
 
         if (!hasOriginSeed && location.pathname !== '/welcome') {
             return (
                 <OriginSyncScreen onComplete={async () => {
+                    sessionStorage.setItem('OSIA_origin_sync_done', 'true');
+                    setOriginSyncDone(true);
                     await refreshProfile();
-                    // Stay on BLUEPRINT, the next render will have profile
                 }} />
             );
         }
@@ -410,17 +417,6 @@ export function OnboardingFlow() {
                                         }
                                     });
                                 });
-                                if (data.situation) {
-                                    dispatch({
-                                        type: 'SET_ANSWER',
-                                        payload: {
-                                            question_id: 'SIGNAL_SITUATION',
-                                            value: data.situation,
-                                            user_id: userProfile?.id || 'anonymous',
-                                            answered_at: new Date().toISOString()
-                                        }
-                                    });
-                                }
                                 handleStageComplete(false);
                                 setIsVoiceInteraction(false);
                             }}
@@ -454,17 +450,6 @@ export function OnboardingFlow() {
                                                     }
                                                 });
                                             });
-                                            if (data.situation) {
-                                                dispatch({
-                                                    type: 'SET_ANSWER',
-                                                    payload: {
-                                                        question_id: 'SIGNAL_SITUATION',
-                                                        value: data.situation,
-                                                        user_id: userProfile?.id || 'anonymous',
-                                                        answered_at: new Date().toISOString()
-                                                    }
-                                                });
-                                            }
                                             // After signals, go to hypothesis testing
                                             navigate('/insight/first');
                                         }}
@@ -498,10 +483,11 @@ export function OnboardingFlow() {
             dispatch({ type: 'SET_STAGE', payload: 'BLUEPRINT' });
             return null;
         }
+        // Auto-advance to next stage instead of dead-end
+        handleStageComplete(true);
         return (
             <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
-                <div className="text-osia-neutral-400">No questions applicable for this stage.</div>
-                <Button onClick={() => handleStageComplete(true)}>Continue to Next Stage</Button>
+                <div className="animate-pulse text-osia-teal-500">Advancing...</div>
             </div>
         );
     }

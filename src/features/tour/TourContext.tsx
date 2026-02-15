@@ -182,7 +182,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
 
     // Check if tour has been completed before
     useEffect(() => {
-        const completed = localStorage.getItem('sentari_tour_completed');
+        const completed = localStorage.getItem('osia_tour_completed');
         if (completed === 'true') {
             setTourCompleted(true);
         }
@@ -196,7 +196,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
     const endTour = () => {
         setIsTourActive(false);
         setTourCompleted(true);
-        localStorage.setItem('sentari_tour_completed', 'true');
+        localStorage.setItem('osia_tour_completed', 'true');
     };
 
     const skipTour = () => {

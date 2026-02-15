@@ -1169,5 +1169,78 @@ export const api = {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
+    },
+
+    // ── Organization Culture ─────────────────────────────────────────
+
+    async getOrgCulture(orgId: string): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const res = await fetch(`/api/organizations/${orgId}/culture`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({ error: 'Failed to fetch culture data' }));
+            throw new Error(err.error || 'Failed to fetch culture data');
+        }
+        return res.json();
+    },
+
+    async analyzeOrgCulture(orgId: string): Promise<Response> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        return fetch(`/api/organizations/${orgId}/culture/analyze`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+        });
+    },
+
+    // ── Subscription Management ──────────────────────────────────────
+
+    async getSubscription(): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const res = await fetch('/api/subscriptions/current', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({ error: 'Failed to fetch subscription' }));
+            throw new Error(err.error || 'Failed to fetch subscription');
+        }
+        return res.json();
+    },
+
+    async createCheckout(priceId: string): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const res = await fetch('/api/subscriptions/create-checkout', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                priceId,
+                successUrl: `${window.location.origin}/settings?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+                cancelUrl: `${window.location.origin}/settings?checkout=cancelled`
+            })
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({ error: 'Failed to create checkout' }));
+            throw new Error(err.error || 'Failed to create checkout');
+        }
+        return res.json();
+    },
+
+    async openBillingPortal(): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const res = await fetch('/api/subscriptions/customer-portal', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ returnUrl: window.location.href })
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({ error: 'Failed to open billing portal' }));
+            throw new Error(err.error || 'Failed to open billing portal');
+        }
+        return res.json();
     }
 };

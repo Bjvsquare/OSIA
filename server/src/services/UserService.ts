@@ -75,7 +75,8 @@ export class UserService {
             const { password: _, ...userWithoutPassword } = user;
 
             logToDisk(`[UserService] Checking founding status...`);
-            const foundingMembers = await db.getCollection<any>('founding_circle');
+            const foundingMembersRaw = await db.getCollection<any>('founding_circle').catch(() => []);
+            const foundingMembers = Array.isArray(foundingMembersRaw) ? foundingMembersRaw : [];
             const isFoundingMember =
                 user.subscriptionTier === 'founding' ||
                 foundingMembers.some(
@@ -134,11 +135,12 @@ export class UserService {
 
         if (!user) throw new Error('User not found');
 
-        const foundingMembers = await db.getCollection<any>('founding_circle');
+        const foundingMembersRaw = await db.getCollection<any>('founding_circle').catch(() => []);
+        const foundingMembers = Array.isArray(foundingMembersRaw) ? foundingMembersRaw : [];
         const isFoundingMember =
             user.subscriptionTier === 'founding' ||
             foundingMembers.some(
-                fm => fm.email.toLowerCase() === user.username.toLowerCase() && fm.status === 'activated'
+                fm => fm.email?.toLowerCase() === user.username?.toLowerCase() && fm.status === 'activated'
             );
 
         const { password: _, ...userWithoutPassword } = user;

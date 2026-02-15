@@ -685,7 +685,7 @@ export function SettingsPage() {
                                                 size="sm"
                                                 className="text-[10px] uppercase font-bold"
                                                 onClick={() => {
-                                                    localStorage.removeItem('sentari_tour_completed');
+                                                    localStorage.removeItem('osia_tour_completed');
                                                     startTour();
                                                     navigate('/home');
                                                 }}

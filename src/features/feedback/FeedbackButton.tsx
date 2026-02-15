@@ -46,15 +46,9 @@ export function FeedbackButton() {
     });
     const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
 
-    // Only show for founding circle members or admins
-    const isFoundingMember =
-        userProfile?.isFoundingMember === true ||
-        userProfile?.accessTier === 'founding' ||
-        userProfile?.subscription?.tier === 'founding' ||
-        userProfile?.subscriptionTier === 'founding' ||
-        userProfile?.isAdmin === true;
-
-    if (!isFoundingMember) return null;
+    // Early access: show for all authenticated users so they can report issues
+    // TODO: Restrict to founding/paid members when leaving early access
+    if (!userProfile) return null;
 
     const handleScreenshotUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
