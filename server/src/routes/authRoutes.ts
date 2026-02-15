@@ -334,4 +334,35 @@ router.post('/google/verify', async (req, res) => {
     }
 });
 
+// Promote current user to admin (requires JWT + setup secret)
+// Usage: POST /api/auth/promote-admin with header Authorization: Bearer <token>
+// Body: { "setupSecret": "<JWT_SECRET value>" }
+router.post('/promote-admin', authenticate, async (req: any, res: any) => {
+    try {
+        const { setupSecret } = req.body;
+
+        // Verify the setup secret matches JWT_SECRET (only the developer knows this)
+        if (setupSecret !== JWT_SECRET) {
+            return res.status(403).json({ error: 'Invalid setup secret' });
+        }
+
+        const userId = req.user.id || req.user.userId;
+        const db = require('../db/JsonDb').default;
+        const users = await db.getCollection('users');
+        const userIndex = users.findIndex((u: any) => u.id === userId);
+
+        if (userIndex === -1) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        users[userIndex].isAdmin = true;
+        await db.saveCollection('users', users);
+
+        console.log(`[Auth] User ${userId} promoted to admin via setup secret`);
+        res.json({ message: 'You are now an admin! Please log out and log back in.' });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 export default router;
