@@ -1,5 +1,6 @@
+# Force Node 20 (required by Supabase, Vite 7, React Router 7, etc.)
 [phases.setup]
-nixPkgs = ["nodejs_18", "npm-9_x"]
+nixPkgs = ["nodejs_20", "npm-10_x"]
 
 [phases.install]
 cmds = ["npm ci"]
