@@ -18,11 +18,13 @@ RUN npm run build
 # Back to app root
 WORKDIR /app
 
+# Create the data directory (volume mount point)
+RUN mkdir -p /app/server/data
+
 # Set production environment
 ENV NODE_ENV=production
 
-# Railway injects PORT automatically
-EXPOSE ${PORT:-3001}
+EXPOSE 3001
 
-# Start the server
-CMD ["node", "server/dist/server.js"]
+# Start using shell form so NODE_ENV and error output work
+CMD node server/dist/server.js
