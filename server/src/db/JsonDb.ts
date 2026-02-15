@@ -12,11 +12,13 @@ export class JsonDb {
 
     private safeLog(message: string, type: 'info' | 'warn' | 'error' = 'info') {
         try {
+            const logEntry = `[${new Date().toISOString()}] ${message}\n`;
+            require('fs').appendFileSync(path.join(process.cwd(), 'server-vital-signs.log'), logEntry);
             if (type === 'error') console.error(message);
             else if (type === 'warn') console.warn(message);
             else console.log(message);
         } catch (e: any) {
-            // Silence EPIPE or other terminal-related errors
+            // Silence errors
         }
     }
 

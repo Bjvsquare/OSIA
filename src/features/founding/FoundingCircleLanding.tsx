@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Sparkles, Users, Shield, Zap, CheckCircle2 } from 'lucide-react';
+import { Mail, Sparkles, Users, Shield, Zap, CheckCircle2, Copy, Check } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { api } from '../../services/api';
@@ -11,6 +11,8 @@ export function FoundingCircleLanding() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [queueNumber, setQueueNumber] = useState<number | null>(null);
+    const [accessCode, setAccessCode] = useState<string | null>(null);
+    const [copied, setCopied] = useState(false);
     const [error, setError] = useState('');
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -28,6 +30,7 @@ export function FoundingCircleLanding() {
             }
 
             setQueueNumber(data.queueNumber);
+            setAccessCode(data.accessCode || null);
             setSubmitted(true);
         } catch (err: any) {
             setError(err.message);
@@ -181,7 +184,38 @@ export function FoundingCircleLanding() {
                                     </div>
                                 </div>
 
-                                {queueNumber && queueNumber <= 150 && (
+                                {accessCode && (
+                                    <div className="space-y-3">
+                                        <div className="text-sm font-bold text-osia-neutral-500 uppercase tracking-widest">
+                                            Your Access Code
+                                        </div>
+                                        <div className="inline-flex items-center gap-3 px-8 py-4 bg-osia-purple-500/10 border border-osia-purple-500/30 rounded-2xl">
+                                            <span className="text-2xl font-mono font-black text-osia-purple-300 tracking-wider">
+                                                {accessCode}
+                                            </span>
+                                            <button
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(accessCode);
+                                                    setCopied(true);
+                                                    setTimeout(() => setCopied(false), 2000);
+                                                }}
+                                                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+                                                title="Copy code"
+                                            >
+                                                {copied ? (
+                                                    <Check className="w-4 h-4 text-green-400" />
+                                                ) : (
+                                                    <Copy className="w-4 h-4 text-osia-neutral-400" />
+                                                )}
+                                            </button>
+                                        </div>
+                                        <p className="text-sm text-osia-neutral-500">
+                                            Save this code — you'll need it to create your account.
+                                        </p>
+                                    </div>
+                                )}
+
+                                {queueNumber && queueNumber <= 150 && !accessCode && (
                                     <div className="p-4 bg-osia-purple-500/10 border border-osia-purple-500/20 rounded-xl">
                                         <p className="text-sm text-osia-purple-300 font-bold">
                                             🎉 You're in the first 150! Check your email for your access code.
@@ -190,7 +224,7 @@ export function FoundingCircleLanding() {
                                 )}
 
                                 <p className="text-sm text-osia-neutral-500">
-                                    We've sent a confirmation to <span className="text-white font-bold">{email}</span>
+                                    We've also sent a confirmation to <span className="text-white font-bold">{email}</span>
                                 </p>
                             </Card>
                         </motion.div>

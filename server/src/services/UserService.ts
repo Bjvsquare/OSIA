@@ -48,41 +48,40 @@ export class UserService {
     }
 
     async login(username: string, password: string): Promise<{ token: string; user: any }> {
-        console.log(`[UserService] Login starting for user: ${username}`);
+        logToDisk(`[UserService] Login starting for user: ${username}`);
         try {
+            logToDisk(`[UserService] Fetching user collection...`);
             const users = await db.getCollection<any>('users');
-            console.log(`[UserService] Initial users check: ${users.length} users found`);
+            logToDisk(`[UserService] Initial users check: ${users.length} users found`);
 
             const user = users.find(u => u.username === username);
 
             if (!user) {
-                console.log(`[UserService] User not found: ${username}`);
+                logToDisk(`[UserService] User not found: ${username}`);
                 throw new Error('Invalid credentials');
             }
 
-            console.log(`[UserService] Comparing flags: user found, id=${user.id}`);
-            console.log(`[UserService] Bcrypt comparing password...`);
+            logToDisk(`[UserService] User found (id: ${user.id}). Comparing password...`);
             const isValid = await bcrypt.compare(password, user.password);
-            console.log(`[UserService] Bcrypt result: ${isValid}`);
+            logToDisk(`[UserService] Bcrypt result: ${isValid}`);
 
             if (!isValid) {
-                console.log(`[UserService] Invalid password for ${username}`);
+                logToDisk(`[UserService] Invalid password for ${username}`);
                 throw new Error('Invalid credentials');
             }
 
-            console.log(`[UserService] Generating JWT for ${user.id}`);
+            logToDisk(`[UserService] Generating JWT for ${user.id}...`);
             const token = jwt.sign({ id: user.id, username: user.username, isAdmin: !!user.isAdmin }, JWT_SECRET);
             const { password: _, ...userWithoutPassword } = user;
 
-            // Check founding circle status for the profile
-            console.log(`[UserService] Checking founding status...`);
+            logToDisk(`[UserService] Checking founding status...`);
             const foundingMembers = await db.getCollection<any>('founding_circle');
             const isFoundingMember =
                 user.subscriptionTier === 'founding' ||
                 foundingMembers.some(
                     fm => fm.email.toLowerCase() === user.username.toLowerCase() && fm.status === 'activated'
                 );
-            console.log(`[UserService] Founding status check complete: ${isFoundingMember}`);
+            logToDisk(`[UserService] Founding status check complete: ${isFoundingMember}`);
 
             return {
                 token,
@@ -93,8 +92,8 @@ export class UserService {
                     isFoundingMember
                 }
             };
-        } catch (error) {
-            console.error(`[UserService] Login error:`, error);
+        } catch (error: any) {
+            logToDisk(`[UserService] Login error: ${error.message}`);
             throw error;
         }
     }
