@@ -1127,6 +1127,52 @@ export const api = {
         return response.json();
     },
 
+    // ── KYC Verification (Admin) ─────────────────────────────────────
+
+    async getKYCAdminQueue(): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const response = await fetch('/api/kyc/admin/queue', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Failed to fetch KYC queue');
+        return response.json();
+    },
+
+    async getKYCAllRecords(): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const response = await fetch('/api/kyc/admin/all', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Failed to fetch KYC records');
+        return response.json();
+    },
+
+    async adminReviewKYC(userId: string, decision: 'approve' | 'reject', reason?: string): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const response = await fetch('/api/kyc/admin/review', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId, decision, reason })
+        });
+        if (!response.ok) throw new Error('Failed to review KYC');
+        return response.json();
+    },
+
+    async checkKYCDeadlines(): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const response = await fetch('/api/kyc/admin/check-deadlines', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Failed to check deadlines');
+        return response.json();
+    },
+
+
     // ── Feedback ─────────────────────────────────────────────────────
 
     async submitFeedback(formData: FormData): Promise<Response> {

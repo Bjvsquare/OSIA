@@ -22,13 +22,15 @@ import { Interactions } from './components/Interactions';
 import { FoundingCircle } from './components/FoundingCircle';
 import { FeedbackManagement } from './components/FeedbackManagement';
 import { PlatformPlanning } from './components/PlatformPlanning';
+import { KYCReviewPanel } from './components/KYCReviewPanel';
 import { useToast } from '../../components/ui/Toast';
 import { api } from '../../services/api';
 
 export function AdminPage() {
-    const [activeTab, setActiveTab] = useState<'users' | 'analytics' | 'errors' | 'interactions' | 'system' | 'founding' | 'feedback' | 'planning'>('analytics');
+    const [activeTab, setActiveTab] = useState<'users' | 'analytics' | 'errors' | 'interactions' | 'system' | 'founding' | 'feedback' | 'planning' | 'kyc'>('analytics');
     const [analytics, setAnalytics] = useState<any>(null);
     const [unreadFeedbackCount, setUnreadFeedbackCount] = useState(0);
+    const [pendingKYCCount, setPendingKYCCount] = useState(0);
     const { showToast, ToastComponent } = useToast();
 
     const fetchAnalytics = async () => {
@@ -49,18 +51,30 @@ export function AdminPage() {
         }
     };
 
+    const fetchPendingKYC = async () => {
+        try {
+            const data = await api.getKYCAdminQueue();
+            setPendingKYCCount(data.pending?.length || 0);
+        } catch (error) {
+            console.error('Failed to fetch pending KYC:', error);
+        }
+    };
+
     useEffect(() => {
         fetchAnalytics();
         fetchUnreadFeedback();
+        fetchPendingKYC();
         const interval = setInterval(() => {
             fetchAnalytics();
             fetchUnreadFeedback();
+            fetchPendingKYC();
         }, 60000); // Refresh every minute
         return () => clearInterval(interval);
     }, []);
 
     const tabs = [
         { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+        { id: 'kyc', label: 'KYC', icon: Shield },
         { id: 'founding', label: 'Founding Circle', icon: Shield },
         { id: 'feedback', label: 'Feedback', icon: AlertCircle },
         { id: 'planning', label: 'Planning', icon: Activity },
@@ -107,6 +121,11 @@ export function AdminPage() {
                                         {unreadFeedbackCount > 9 ? '9+' : unreadFeedbackCount}
                                     </span>
                                 )}
+                                {tab.id === 'kyc' && pendingKYCCount > 0 && (
+                                    <span className="ml-1 px-1.5 py-0.5 text-[8px] font-black bg-amber-500 text-white rounded-full min-w-[18px] text-center animate-pulse">
+                                        {pendingKYCCount > 9 ? '9+' : pendingKYCCount}
+                                    </span>
+                                )}
                             </button>
                         ))}
                     </div>
@@ -139,6 +158,7 @@ export function AdminPage() {
                         transition={{ duration: 0.4, ease: "easeOut" }}
                     >
                         {activeTab === 'analytics' && <Analytics data={analytics} />}
+                        {activeTab === 'kyc' && <KYCReviewPanel />}
                         {activeTab === 'founding' && <FoundingCircle />}
                         {activeTab === 'feedback' && <FeedbackManagement />}
                         {activeTab === 'planning' && <PlatformPlanning />}

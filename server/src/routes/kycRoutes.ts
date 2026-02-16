@@ -341,4 +341,53 @@ router.post('/admin/review', authMiddleware, async (req: any, res: any) => {
     }
 });
 
+/**
+ * GET /api/kyc/admin/all
+ * Get all KYC records with full details (admin dashboard).
+ */
+router.get('/admin/all', authMiddleware, async (req: any, res: any) => {
+    try {
+        if (!req.user.isAdmin) {
+            return res.status(403).json({ error: 'Admin access required' });
+        }
+
+        const records = await kycService.getAllRecords();
+        res.json({ records });
+    } catch (error: any) {
+        console.error('[KYC] Admin all records error:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * POST /api/kyc/admin/check-deadlines
+ * Manually trigger deadline check (also runs automatically via scheduler).
+ */
+router.post('/admin/check-deadlines', authMiddleware, async (req: any, res: any) => {
+    try {
+        if (!req.user.isAdmin) {
+            return res.status(403).json({ error: 'Admin access required' });
+        }
+
+        const result = await kycService.checkDeadlines();
+
+        await auditLogger.log({
+            userId: req.user.id || req.user.userId,
+            username: req.user.username,
+            action: 'kyc_manual_deadline_check',
+            status: 'success',
+            details: result
+        });
+
+        res.json({
+            message: 'Deadline check complete',
+            ...result
+        });
+    } catch (error: any) {
+        console.error('[KYC] Deadline check error:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 export default router;
+
