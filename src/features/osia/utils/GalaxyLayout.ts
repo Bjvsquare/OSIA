@@ -19,11 +19,11 @@ export interface ClusterConfig {
 }
 
 export const CLUSTER_CONFIGS: ClusterConfig[] = [
-    { cluster: 'family', innerRadius: 3, outerRadius: 5.5, planeTilt: 0, baseHue: 40, spiralArms: 2, label: 'Family' },
-    { cluster: 'friends', innerRadius: 5, outerRadius: 8.5, planeTilt: Math.PI / 12, baseHue: 180, spiralArms: 3, label: 'Friends' },
-    { cluster: 'colleagues', innerRadius: 8, outerRadius: 12, planeTilt: -Math.PI / 12, baseHue: 270, spiralArms: 3, label: 'Colleagues' },
-    { cluster: 'team', innerRadius: 6, outerRadius: 9, planeTilt: Math.PI / 8, baseHue: 160, spiralArms: 2, label: 'Team' },
-    { cluster: 'org', innerRadius: 10, outerRadius: 15, planeTilt: -Math.PI / 10, baseHue: 220, spiralArms: 4, label: 'Organization' },
+    { cluster: 'family', innerRadius: 4, outerRadius: 6, planeTilt: 0, baseHue: 40, spiralArms: 2, label: 'Family' },
+    { cluster: 'friends', innerRadius: 6.5, outerRadius: 9, planeTilt: Math.PI / 16, baseHue: 180, spiralArms: 3, label: 'Friends' },
+    { cluster: 'colleagues', innerRadius: 9.5, outerRadius: 13, planeTilt: -Math.PI / 16, baseHue: 270, spiralArms: 3, label: 'Colleagues' },
+    { cluster: 'team', innerRadius: 7, outerRadius: 10, planeTilt: Math.PI / 12, baseHue: 160, spiralArms: 2, label: 'Team' },
+    { cluster: 'org', innerRadius: 12, outerRadius: 16, planeTilt: -Math.PI / 14, baseHue: 220, spiralArms: 4, label: 'Organization' },
 ];
 
 // ── Galaxy Mode Detection ────────────────────────────────────────
@@ -121,7 +121,7 @@ export function layoutGalaxy(
                 description: `${config.label} connection`,
                 intensity: conn.strength,
                 colorHue: config.baseHue + (i * 15) % 60,
-                size: 0.4 + conn.strength * 0.4,
+                size: 0.6 + conn.strength * 0.5,
                 userId: conn.userId,
                 avatarUrl: conn.avatarUrl,
                 orbitalRadius: position.length(),

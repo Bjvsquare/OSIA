@@ -59,6 +59,8 @@ import { OrganizationPublicProfile } from './features/organization/components/Or
 import { OrgDashboard } from './features/organization/OrgDashboard';
 import { ConsentManagementScreen } from './features/organization/components/ConsentManagementScreen';
 import { TeamDynamicsPage } from './features/teams/TeamDynamicsPage';
+import { KYCSubmissionFlow } from './features/kyc/KYCSubmissionFlow';
+import { KYCStatusPage } from './features/kyc/KYCStatusPage';
 // Removed redundant organization imports
 import type { ReactNode } from 'react';
 
@@ -204,6 +206,10 @@ function App() {
                   {/* Internal / Lab */}
                   <Route path="/lab/layers" element={<LayerLabPage />} />
                   <Route path="/lab/high-fidelity" element={<HighFidVizPage />} />
+
+                  {/* KYC Verification */}
+                  <Route path="/kyc" element={<KYCSubmissionFlow />} />
+                  <Route path="/kyc/status" element={<KYCStatusPage />} />
                 </Route>
 
                 {/* Fullscreen Lab Routes (No Layout) */}

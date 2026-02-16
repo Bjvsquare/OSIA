@@ -7,11 +7,30 @@ import { NavigationControls } from './ui/NavigationControls';
 import { UserLabels } from './ui/UserLabels';
 import { LoadingScreen } from './ui/LoadingScreen';
 import { useVisualizationStore } from './stores/visualizationStore';
+import { useAuth } from '../auth/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
 import './osia.css';
 
 export function OsiaPage() {
     const { data, fetchData, isLoading, error } = useVisualizationStore();
     const viewMode = data?.viewMode || 'single';
+    const { auth } = useAuth();
+
+    // Fetch user's avatar/portrait URL for core orb
+    const { data: profileData } = useQuery({
+        queryKey: ['user-profile-portrait'],
+        queryFn: async () => {
+            const res = await axios.get('/api/users/profile', {
+                headers: { Authorization: `Bearer ${auth.token}` }
+            });
+            return res.data;
+        },
+        enabled: !!auth.token,
+        staleTime: 60000,
+    });
+
+    const portraitUrl = profileData?.avatarUrl || null;
 
     useEffect(() => {
         fetchData();
@@ -56,7 +75,7 @@ export function OsiaPage() {
                     camera={{ position: [0, 0, 18], fov: 45, near: 0.1, far: 100 }}
                     flat
                 >
-                    <OsiaScene />
+                    <OsiaScene portraitUrl={portraitUrl} />
                     <Preload all />
                 </Canvas>
             </div>

@@ -5,6 +5,7 @@ import { JWT_SECRET } from '../config/jwt';
 import { authenticator } from 'otplib';
 import QRCode from 'qrcode';
 import { ADMIN_EMAILS } from '../config/admin';
+import { kycService } from './KYCService';
 
 const logToDisk = (message: string) => {
     try {
@@ -41,6 +42,13 @@ export class UserService {
 
         users.push(newUser);
         await db.saveCollection('users', users);
+
+        // Initialize KYC record with 3-day deadline
+        try {
+            await kycService.initializeKYC(newUser.id);
+        } catch (e: any) {
+            console.warn(`[UserService] KYC init failed for ${newUser.id}: ${e.message}`);
+        }
 
         const token = jwt.sign({ id: newUser.id, username: newUser.username, isAdmin: newUser.isAdmin }, JWT_SECRET);
         const { password: _, ...userWithoutPassword } = newUser;
@@ -157,12 +165,27 @@ export class UserService {
                 fm => fm.email?.toLowerCase() === user.username?.toLowerCase() && fm.status === 'activated'
             );
 
+        // Get KYC status
+        let kycStatus = null;
+        try {
+            kycStatus = await kycService.getStatus(userId);
+        } catch (e: any) {
+            console.warn(`[UserService] KYC status fetch failed for ${userId}: ${e.message}`);
+        }
+
         const { password: _, ...userWithoutPassword } = user;
         return {
             subscriptionTier: user.subscriptionTier || 'free',
             onboardingCompleted: !!user.onboardingCompleted,
             isFoundingMember,
             isAdmin,
+            kycStatus: kycStatus ? {
+                status: kycStatus.status,
+                timeRemaining: kycStatus.timeRemaining,
+                isOverdue: kycStatus.isOverdue,
+                portrait: kycStatus.portrait,
+                unlockUsed: kycStatus.unlockUsed
+            } : null,
             ...userWithoutPassword
         };
     }

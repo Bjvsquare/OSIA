@@ -22,6 +22,23 @@ export interface ConnectedUser {
     connectedSince: string;
 }
 
+export interface ConnectionTypeChangeRequest {
+    requestId: string;
+    fromUserId: string;
+    fromUsername?: string;
+    fromName?: string;
+    fromAvatar?: string;
+    toUserId: string;
+    toUsername?: string;
+    toName?: string;
+    currentType: string;
+    proposedType: string;
+    proposedSubType?: string;
+    status: 'pending' | 'approved' | 'rejected';
+    timestamp: string;
+    respondedAt?: string;
+}
+
 export class ConnectionService {
 
     private safeLog(message: string, isError = false) {
@@ -29,10 +46,7 @@ export class ConnectionService {
             if (isError) console.error(message);
             else console.log(message);
         } catch (e: any) {
-            // EPIPE: Broken pipe - ignore (terminal disconnected)
-            if (e.code !== 'EPIPE') {
-                // Try file system fallback if possible, or just swallow
-            }
+            if (e.code !== 'EPIPE') { }
         }
     }
 
@@ -62,7 +76,6 @@ export class ConnectionService {
 
                         return isNotSelf && (usernameMatch || nameMatch);
                     } catch (e) {
-                        // Silent catch inside filter loop to avoid spam/crash
                         return false;
                     }
                 })
@@ -78,7 +91,6 @@ export class ConnectionService {
             return results;
         } catch (error: any) {
             this.safeLog(`[ConnectionService] searchUsers FAILURE: ${error.message}`, true);
-            // Return empty array instead of throwing to prevent 500
             return [];
         }
     }
@@ -89,14 +101,12 @@ export class ConnectionService {
     async sendRequest(fromUserId: string, toUserId: string, type: string): Promise<string> {
         console.log(`[ConnectionService] SEND REQUEST: from=${fromUserId}, to=${toUserId}, type=${type}`);
 
-        // --- NEO4J FALLBACK LOGIC ---
         const isNeo4jHealthy = await neo4jService.isHealthy();
         if (!isNeo4jHealthy) {
             console.log(`[ConnectionService] Neo4j is DOWN. Using Virtual Graph fallback.`);
             const requestId = `sim_req_${randomUUID()}`;
             const timestamp = new Date().toISOString();
 
-            // Simulating persistence in JSON DB
             const simRequests = await db.getCollection<any>('sim_connection_requests') || [];
             simRequests.push({ requestId, fromUserId, toUserId, type, status: 'PENDING', timestamp });
             await db.saveCollection('sim_connection_requests', simRequests);
@@ -109,14 +119,12 @@ export class ConnectionService {
         const timestamp = new Date().toISOString();
 
         try {
-            // 1. Ensure both users exist in Neo4j
             console.log(`[ConnectionService] Ensuring users exist in Neo4j...`);
             await session.run(`
                 MERGE (a:User {userId: $fromUserId})
                 MERGE (b:User {userId: $toUserId})
             `, { fromUserId, toUserId });
 
-            // 2. Check if connection already exists
             const existing = await session.run(`
                 MATCH (a:User {userId: $fromUserId})-[r:CONNECTED_WITH]-(b:User {userId: $toUserId})
                 RETURN r
@@ -127,7 +135,6 @@ export class ConnectionService {
                 throw new Error('Already connected');
             }
 
-            // 3. Create Request Edge
             console.log(`[ConnectionService] Creating CONNECTION_REQUEST edge...`);
             await session.run(`
                 MATCH (a:User {userId: $fromUserId})
@@ -303,6 +310,168 @@ export class ConnectionService {
             } as ConnectedUser;
         });
     }
+
+    /* ═══════════════════════════════════════════════════════════════
+       Connection Type Change Requests — Mutual Approval
+       Both users must agree before the connection type is updated.
+       ═══════════════════════════════════════════════════════════════ */
+
+    /**
+     * Propose a change in connection type to the other user
+     */
+    async proposeTypeChange(
+        fromUserId: string,
+        toUserId: string,
+        proposedType: string,
+        proposedSubType?: string
+    ): Promise<string> {
+        console.log(`[ConnectionService] TYPE CHANGE: ${fromUserId} → ${toUserId}, proposed="${proposedType}"`);
+
+        // Verify they are connected
+        const connections = await this.getConnections(fromUserId);
+        const existing = connections.find(c => c.userId === toUserId);
+        if (!existing) throw new Error('Not connected to this user');
+
+        // Check for duplicate pending request
+        const allRequests = await db.getCollection<ConnectionTypeChangeRequest>('connection_type_changes') || [];
+        const duplicate = allRequests.find(r =>
+            r.status === 'pending' &&
+            ((r.fromUserId === fromUserId && r.toUserId === toUserId) ||
+                (r.fromUserId === toUserId && r.toUserId === fromUserId))
+        );
+        if (duplicate) throw new Error('A type change request is already pending for this connection');
+
+        const requestId = `tc_${randomUUID()}`;
+        const timestamp = new Date().toISOString();
+
+        const users = await db.getCollection<any>('users');
+        const fromUser = users.find(u => u.id === fromUserId);
+        const toUser = users.find(u => u.id === toUserId);
+
+        const request: ConnectionTypeChangeRequest = {
+            requestId,
+            fromUserId,
+            fromUsername: fromUser?.username,
+            fromName: fromUser?.name,
+            fromAvatar: fromUser?.avatarUrl,
+            toUserId,
+            toUsername: toUser?.username,
+            toName: toUser?.name,
+            currentType: existing.connectionType,
+            proposedType,
+            proposedSubType,
+            status: 'pending',
+            timestamp,
+        };
+
+        allRequests.push(request);
+        await db.saveCollection('connection_type_changes', allRequests);
+        console.log(`[ConnectionService] Type change request ${requestId} created`);
+
+        return requestId;
+    }
+
+    /**
+     * Get pending type change requests for a user (incoming proposals they need to approve)
+     */
+    async getPendingTypeChanges(userId: string): Promise<ConnectionTypeChangeRequest[]> {
+        const allRequests = await db.getCollection<ConnectionTypeChangeRequest>('connection_type_changes') || [];
+        return allRequests.filter(r => r.toUserId === userId && r.status === 'pending');
+    }
+
+    /**
+     * Get all type change requests involving a user (sent + received, all statuses)
+     */
+    async getAllTypeChangeRequests(userId: string): Promise<ConnectionTypeChangeRequest[]> {
+        const allRequests = await db.getCollection<ConnectionTypeChangeRequest>('connection_type_changes') || [];
+        return allRequests.filter(r => r.fromUserId === userId || r.toUserId === userId);
+    }
+
+    /**
+     * Respond to a type change proposal — approve or reject
+     * On approve: updates the connection type in both sim_connections and Neo4j
+     */
+    async respondToTypeChange(
+        requestId: string,
+        userId: string,
+        action: 'approve' | 'reject'
+    ): Promise<ConnectionTypeChangeRequest> {
+        const allRequests = await db.getCollection<ConnectionTypeChangeRequest>('connection_type_changes') || [];
+        const idx = allRequests.findIndex(r => r.requestId === requestId);
+
+        if (idx === -1) throw new Error('Type change request not found');
+
+        const request = allRequests[idx];
+
+        // Only the target user can respond
+        if (request.toUserId !== userId) {
+            throw new Error('Only the receiving user can respond to this request');
+        }
+
+        if (request.status !== 'pending') {
+            throw new Error('This request has already been processed');
+        }
+
+        const now = new Date().toISOString();
+        request.respondedAt = now;
+
+        if (action === 'reject') {
+            request.status = 'rejected';
+            allRequests[idx] = request;
+            await db.saveCollection('connection_type_changes', allRequests);
+            console.log(`[ConnectionService] Type change ${requestId} REJECTED by ${userId}`);
+            return request;
+        }
+
+        // Approve — update the actual connection type
+        request.status = 'approved';
+        allRequests[idx] = request;
+        await db.saveCollection('connection_type_changes', allRequests);
+
+        // Update sim_connections (JsonDb fallback)
+        const simConnections = await db.getCollection<any>('sim_connections') || [];
+        const connIdx = simConnections.findIndex((c: any) =>
+            (c.userA === request.fromUserId && c.userB === request.toUserId) ||
+            (c.userA === request.toUserId && c.userB === request.fromUserId)
+        );
+        if (connIdx !== -1) {
+            simConnections[connIdx].type = request.proposedType;
+            if (request.proposedSubType) {
+                simConnections[connIdx].subType = request.proposedSubType;
+            }
+            await db.saveCollection('sim_connections', simConnections);
+        }
+
+        // Update Neo4j if available
+        const isNeo4jHealthy = await neo4jService.isHealthy();
+        if (isNeo4jHealthy) {
+            const session = await neo4jService.getSession();
+            try {
+                await session.run(`
+                    MATCH (a:User {userId: $userA})-[r:CONNECTED_WITH]->(b:User {userId: $userB})
+                    SET r.type = $newType
+                `, {
+                    userA: request.fromUserId,
+                    userB: request.toUserId,
+                    newType: request.proposedType,
+                });
+                await session.run(`
+                    MATCH (a:User {userId: $userB})-[r:CONNECTED_WITH]->(b:User {userId: $userA})
+                    SET r.type = $newType
+                `, {
+                    userA: request.fromUserId,
+                    userB: request.toUserId,
+                    newType: request.proposedType,
+                });
+            } finally {
+                await session.close();
+            }
+        }
+
+        console.log(`[ConnectionService] Type change ${requestId} APPROVED: ${request.currentType} → ${request.proposedType}`);
+        return request;
+    }
 }
 
 export const connectionService = new ConnectionService();
+

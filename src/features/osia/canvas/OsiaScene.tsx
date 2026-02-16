@@ -48,7 +48,7 @@ function DynamicConnections({
     );
 }
 
-export function OsiaScene() {
+export function OsiaScene({ portraitUrl }: { portraitUrl?: string | null }) {
     const data = useVisualizationStore(s => s.data);
     const setOrbPositions = useVisualizationStore(s => s.setOrbPositions);
 
@@ -133,6 +133,7 @@ export function OsiaScene() {
                 size={data.centralCore.size * 0.7}
                 color1={user1Color}
                 color2={user2Color}
+                portraitUrl={portraitUrl || undefined}
             />
 
             {/* Cluster orbs orbit the core, each with their layer orbs */}

@@ -110,6 +110,7 @@ import orgOsiaRoutes from './routes/orgOsiaRoutes';
 import nudgesRoutes from './routes/nudgesRoutes';
 import evolutionRoutes from './routes/evolutionRoutes';
 import refinementRoutes from './routes/refinementRoutes';
+import kycRoutes from './routes/kycRoutes';
 
 app.use('/api/auth', authRoutes);
 
@@ -133,6 +134,7 @@ app.use('/api/protocols', protocolRoutes);
 app.use('/api/journey', journeyRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/refinement', refinementRoutes);
+app.use('/api/kyc', kycRoutes);
 
 // In production, serve the built frontend
 if (process.env.NODE_ENV === 'production') {
@@ -221,9 +223,19 @@ process.on('uncaughtException', (err: any) => {
   });
 });
 
-// Keep process alive aggressively
-setInterval(() => {
+// Keep process alive aggressively + KYC deadline checks
+setInterval(async () => {
   logToDisk('[LIFE] Heartbeat: Server process is active.');
+  // KYC deadline enforcement
+  try {
+    const { kycService } = require('./services/KYCService');
+    const result = await kycService.checkDeadlines();
+    if (result.locked.length > 0 || result.lockedFinal.length > 0) {
+      logToDisk(`[KYC] Deadline check: ${result.locked.length} locked, ${result.lockedFinal.length} permanently locked`);
+    }
+  } catch (e: any) {
+    logToDisk(`[KYC] Deadline check error: ${e.message}`);
+  }
 }, 1000 * 60 * 15); // Every 15 minutes
 
 export default app;

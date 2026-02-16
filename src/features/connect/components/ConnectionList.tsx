@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { Loader2, Users, MoreHorizontal, Activity, ChevronRight, ChevronDown, Zap } from 'lucide-react';
+import { Loader2, Users, MoreHorizontal, Activity, ChevronRight, ChevronDown, Zap, ArrowRightLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 
 import { useAuth } from '../../../features/auth/AuthContext';
 import { ConnectionDeepDive } from './ConnectionDeepDive';
+import { TypeChangeNotifications, ProposeTypeChangeModal } from '../ConnectionTypeReview';
 
 interface Connection {
     userId: string;
@@ -28,6 +29,7 @@ export function ConnectionList() {
     const token = auth.token;
     const [selectedConnection, setSelectedConnection] = useState<Connection | null>(null);
     const [synastryCache, setSynastryCache] = useState<Record<string, any>>({});
+    const [reviewConnection, setReviewConnection] = useState<Connection | null>(null);
 
     const { data: connections = [], isLoading } = useQuery({
         queryKey: ['connections'],
@@ -83,6 +85,9 @@ export function ConnectionList() {
 
     return (
         <div className="space-y-6">
+            {/* Type change notifications banner */}
+            <TypeChangeNotifications />
+
             {/* Connection Grid */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {connections.map((conn) => {
@@ -98,12 +103,21 @@ export function ConnectionList() {
                                 }`}
                             onClick={() => handleSelectConnection(conn)}
                         >
-                            <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="absolute top-4 right-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button
-                                    className="text-osia-neutral-400 hover:text-white"
+                                    className="text-osia-neutral-400 hover:text-osia-teal-400 p-1 rounded transition-colors"
+                                    title="Review connection type"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        // Menu logic here
+                                        setReviewConnection(conn);
+                                    }}
+                                >
+                                    <ArrowRightLeft className="w-4 h-4" />
+                                </button>
+                                <button
+                                    className="text-osia-neutral-400 hover:text-white p-1 rounded transition-colors"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
                                     }}
                                 >
                                     <MoreHorizontal className="w-5 h-5" />
@@ -158,6 +172,16 @@ export function ConnectionList() {
                     <Loader2 className="w-6 h-6 text-osia-teal-500 animate-spin" />
                 </div>
             )}
+
+            {/* Propose Type Change Modal */}
+            <AnimatePresence>
+                {reviewConnection && (
+                    <ProposeTypeChangeModal
+                        connection={reviewConnection}
+                        onClose={() => setReviewConnection(null)}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 }

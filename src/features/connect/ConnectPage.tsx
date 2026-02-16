@@ -61,6 +61,21 @@ export function ConnectPage() {
         refetchInterval: 10000
     });
 
+    // Fetch user portrait for galaxy core orb
+    const { data: profileData } = useQuery({
+        queryKey: ['user-profile-connect'],
+        queryFn: async () => {
+            const res = await axios.get('/api/users/profile', {
+                headers: { Authorization: `Bearer ${auth.token}` }
+            });
+            return res.data;
+        },
+        enabled: !!auth.token,
+        staleTime: 60000,
+    });
+
+    const portraitUrl = profileData?.avatarUrl || null;
+
     // Transform connections for GalaxyScene
     const galaxyConnections = useMemo(() => {
         return connectionsRaw.map((conn: any) => ({
@@ -135,6 +150,7 @@ export function ConnectPage() {
                                 centralOrbColor="#00ffff"
                                 centralOrbSize={1.5}
                                 className="h-full"
+                                portraitUrl={portraitUrl}
                             />
                         )}
                         {activeTab === 'circle' && <ConnectionList />}

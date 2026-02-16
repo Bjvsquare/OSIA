@@ -5,6 +5,7 @@ import { resolveAvatarUrl } from '../../utils/resolveAvatarUrl';
 import { useAuth } from '../../features/auth/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
+import { KYCBanner } from '../kyc/KYCBanner';
 
 export function AppLayout() {
     const location = useLocation();
@@ -182,6 +183,9 @@ export function AppLayout() {
                     )}
                 </div>
             </header>
+
+            {/* KYC Verification Banner */}
+            <KYCBanner />
 
             {/* Mobile Navigation Overlay */}
             {isMobileMenuOpen && (

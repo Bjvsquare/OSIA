@@ -225,4 +225,90 @@ router.patch('/shared-insights/:id/read', authMiddleware, async (req: any, res: 
     }
 });
 
+/* ═══════════════════════════════════════════════════════════════
+   Connection Type Change — Mutual Approval
+   ═══════════════════════════════════════════════════════════════ */
+
+/**
+ * POST /api/connect/propose-type-change
+ * Propose changing a connection type (requires other user's approval)
+ */
+router.post('/propose-type-change', authMiddleware, async (req: any, res: any) => {
+    try {
+        const fromUserId = req.user.id || req.user.userId;
+        const { targetUserId, proposedType, proposedSubType } = req.body;
+
+        if (!targetUserId || !proposedType) {
+            return res.status(400).json({ error: 'Missing targetUserId or proposedType' });
+        }
+
+        const requestId = await connectionService.proposeTypeChange(
+            fromUserId,
+            targetUserId,
+            proposedType,
+            proposedSubType
+        );
+
+        await auditLogger.log({
+            userId: fromUserId,
+            username: req.user.username,
+            action: 'propose_type_change',
+            status: 'success',
+            details: { targetUserId, proposedType, proposedSubType, requestId }
+        });
+
+        res.json({ message: 'Type change proposed', requestId });
+    } catch (error: any) {
+        console.error('Propose type change error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * GET /api/connect/type-change-requests
+ * Get pending incoming type change proposals + all history
+ */
+router.get('/type-change-requests', authMiddleware, async (req: any, res: any) => {
+    try {
+        const userId = req.user.id || req.user.userId;
+        const pending = await connectionService.getPendingTypeChanges(userId);
+        const all = await connectionService.getAllTypeChangeRequests(userId);
+        res.json({ pending, all });
+    } catch (error: any) {
+        console.error('Get type change requests error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * POST /api/connect/respond-type-change
+ * Approve or reject a type change proposal
+ */
+router.post('/respond-type-change', authMiddleware, async (req: any, res: any) => {
+    try {
+        const userId = req.user.id || req.user.userId;
+        const { requestId, action } = req.body;
+
+        if (!requestId || !['approve', 'reject'].includes(action)) {
+            return res.status(400).json({ error: 'Missing requestId or invalid action (approve/reject)' });
+        }
+
+        const result = await connectionService.respondToTypeChange(requestId, userId, action);
+
+        await auditLogger.log({
+            userId,
+            username: req.user.username,
+            action: `respond_type_change_${action}`,
+            status: 'success',
+            details: { requestId, proposedType: result.proposedType, currentType: result.currentType }
+        });
+
+        res.json({ message: `Type change ${action}d`, request: result });
+    } catch (error: any) {
+        console.error('Respond type change error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 export default router;
+

@@ -1,9 +1,9 @@
 // ── Relationship Taxonomy ────────────────────────────────────────
 export type RelationshipCluster = 'family' | 'friends' | 'colleagues' | 'team' | 'org';
 export type RelationshipSubType =
-    | 'parent' | 'sibling' | 'extended_family'
-    | 'close_friend' | 'acquaintance'
-    | 'direct_team' | 'cross_team' | 'manager';
+    | 'parent' | 'sibling' | 'extended_family' | 'spouse' | 'partner' | 'child'
+    | 'close_friend' | 'acquaintance' | 'best_friend'
+    | 'direct_team' | 'cross_team' | 'manager' | 'mentor' | 'mentee';
 
 export type GalaxyViewMode = 'solo' | 'constellation' | 'nebula';
 
