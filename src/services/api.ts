@@ -1173,6 +1173,75 @@ export const api = {
     },
 
 
+    // ── Life Areas (Dashboard) ───────────────────────────────────────
+
+    async getDashboardSummary(): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const response = await fetch('/api/life-areas/dashboard', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Failed to fetch dashboard');
+        return response.json();
+    },
+
+    async getLifeAreas(): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const response = await fetch('/api/life-areas', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Failed to fetch life areas');
+        return response.json();
+    },
+
+    async updateLifeAreaScore(domain: string, score: number): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const response = await fetch(`/api/life-areas/${domain}/score`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ score })
+        });
+        if (!response.ok) throw new Error('Failed to update score');
+        return response.json();
+    },
+
+    async setLifeAreaFocus(domain: string, isActive: boolean, goal?: string, goalDeadline?: string): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const response = await fetch(`/api/life-areas/${domain}/focus`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isActive, goal, goalDeadline })
+        });
+        if (!response.ok) throw new Error('Failed to set focus');
+        return response.json();
+    },
+
+    async logLifeAreaActivity(domain: string, type: string, details: string): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const response = await fetch(`/api/life-areas/${domain}/activity`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type, details })
+        });
+        if (!response.ok) throw new Error('Failed to log activity');
+        return response.json();
+    },
+
+    async completeOneThingToday(domain: string): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const response = await fetch(`/api/life-areas/${domain}/complete-today`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Failed to complete daily task');
+        return response.json();
+    },
+
     // ── Feedback ─────────────────────────────────────────────────────
 
     async submitFeedback(formData: FormData): Promise<Response> {

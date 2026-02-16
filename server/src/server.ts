@@ -111,6 +111,7 @@ import nudgesRoutes from './routes/nudgesRoutes';
 import evolutionRoutes from './routes/evolutionRoutes';
 import refinementRoutes from './routes/refinementRoutes';
 import kycRoutes from './routes/kycRoutes';
+import lifeAreaRoutes from './routes/lifeAreaRoutes';
 
 app.use('/api/auth', authRoutes);
 
@@ -135,6 +136,7 @@ app.use('/api/journey', journeyRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/refinement', refinementRoutes);
 app.use('/api/kyc', kycRoutes);
+app.use('/api/life-areas', lifeAreaRoutes);
 
 // In production, serve the built frontend
 if (process.env.NODE_ENV === 'production') {
