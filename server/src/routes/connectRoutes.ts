@@ -129,6 +129,32 @@ router.post('/request', authMiddleware, async (req: any, res: any) => {
 });
 
 /**
+ * DELETE /api/connect/remove/:targetUserId
+ * Remove a connection
+ */
+router.delete('/remove/:targetUserId', authMiddleware, async (req: any, res: any) => {
+    try {
+        const userId = req.user.id || req.user.userId;
+        const { targetUserId } = req.params;
+
+        await connectionService.removeConnection(userId, targetUserId);
+
+        await auditLogger.log({
+            userId,
+            username: req.user.username,
+            action: 'remove_connection',
+            status: 'success',
+            details: { targetUserId }
+        });
+
+        res.json({ message: 'Connection removed successfully' });
+    } catch (error: any) {
+        console.error('Remove connection error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
  * POST /api/connect/respond
  * Accept or Reject a request
  */

@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
-import { Loader2, Users, MoreHorizontal, Activity, ChevronRight, ChevronDown, Zap, ArrowRightLeft } from 'lucide-react';
+import { Loader2, Users, MoreHorizontal, Activity, ChevronRight, ChevronDown, Zap, ArrowRightLeft, Trash2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 
@@ -30,6 +30,23 @@ export function ConnectionList() {
     const [selectedConnection, setSelectedConnection] = useState<Connection | null>(null);
     const [synastryCache, setSynastryCache] = useState<Record<string, any>>({});
     const [reviewConnection, setReviewConnection] = useState<Connection | null>(null);
+    const [menuOpenFor, setMenuOpenFor] = useState<string | null>(null);
+    const [confirmRemove, setConfirmRemove] = useState<Connection | null>(null);
+    const queryClient = useQueryClient();
+
+    const removeMutation = useMutation({
+        mutationFn: async (targetUserId: string) => {
+            await axios.delete(`/api/connect/remove/${targetUserId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['connections'] });
+            setConfirmRemove(null);
+            setSelectedConnection(null);
+            setMenuOpenFor(null);
+        }
+    });
 
     const { data: connections = [], isLoading } = useQuery({
         queryKey: ['connections'],
@@ -114,14 +131,39 @@ export function ConnectionList() {
                                 >
                                     <ArrowRightLeft className="w-4 h-4" />
                                 </button>
-                                <button
-                                    className="text-osia-neutral-400 hover:text-white p-1 rounded transition-colors"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                    }}
-                                >
-                                    <MoreHorizontal className="w-5 h-5" />
-                                </button>
+                                <div className="relative">
+                                    <button
+                                        className="text-osia-neutral-400 hover:text-white p-1 rounded transition-colors"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setMenuOpenFor(menuOpenFor === conn.userId ? null : conn.userId);
+                                        }}
+                                    >
+                                        <MoreHorizontal className="w-5 h-5" />
+                                    </button>
+                                    <AnimatePresence>
+                                        {menuOpenFor === conn.userId && (
+                                            <motion.div
+                                                initial={{ opacity: 0, scale: 0.9, y: -4 }}
+                                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                exit={{ opacity: 0, scale: 0.9, y: -4 }}
+                                                className="absolute right-0 top-full mt-1 w-48 bg-[#1a1a2e] border border-white/10 rounded-lg shadow-xl z-50 overflow-hidden"
+                                            >
+                                                <button
+                                                    className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setConfirmRemove(conn);
+                                                        setMenuOpenFor(null);
+                                                    }}
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                    Remove Connection
+                                                </button>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
                             </div>
 
                             <div className="flex items-center gap-4 mb-4">
@@ -180,6 +222,52 @@ export function ConnectionList() {
                         connection={reviewConnection}
                         onClose={() => setReviewConnection(null)}
                     />
+                )}
+            </AnimatePresence>
+
+            {/* Remove Confirmation Dialog */}
+            <AnimatePresence>
+                {confirmRemove && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+                        onClick={() => setConfirmRemove(null)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-[#12121f] border border-white/10 rounded-2xl p-6 max-w-sm mx-4 shadow-2xl"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="flex justify-between items-start mb-4">
+                                <h3 className="text-lg font-bold text-white">Remove Connection</h3>
+                                <button onClick={() => setConfirmRemove(null)} className="text-osia-neutral-400 hover:text-white">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <p className="text-osia-neutral-300 text-sm mb-6">
+                                Are you sure you want to remove <strong className="text-white">{confirmRemove.name || confirmRemove.username}</strong> from your circle? This will disconnect you both.
+                            </p>
+                            <div className="flex gap-3">
+                                <button
+                                    className="flex-1 px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-osia-neutral-300 hover:bg-white/10 transition-colors text-sm font-medium"
+                                    onClick={() => setConfirmRemove(null)}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    className="flex-1 px-4 py-2.5 rounded-lg bg-red-500/20 border border-red-500/30 text-red-400 hover:bg-red-500/30 transition-colors text-sm font-medium disabled:opacity-50"
+                                    disabled={removeMutation.isPending}
+                                    onClick={() => removeMutation.mutate(confirmRemove.userId)}
+                                >
+                                    {removeMutation.isPending ? 'Removing...' : 'Remove'}
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
                 )}
             </AnimatePresence>
         </div>

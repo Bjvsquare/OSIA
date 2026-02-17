@@ -334,6 +334,49 @@ export class ConnectionService {
         });
     }
 
+    /**
+     * Remove a connection between two users
+     */
+    async removeConnection(userId: string, targetUserId: string): Promise<void> {
+        console.log(`[ConnectionService] REMOVE CONNECTION: ${userId} <-> ${targetUserId}`);
+
+        const isNeo4jHealthy = await neo4jService.isHealthy();
+
+        if (!isNeo4jHealthy) {
+            console.log(`[ConnectionService] Neo4j is DOWN. Removing virtual connection.`);
+            const simConnections = await db.getCollection<any>('sim_connections') || [];
+            const filtered = simConnections.filter((c: any) =>
+                !((c.userA === userId && c.userB === targetUserId) ||
+                    (c.userA === targetUserId && c.userB === userId))
+            );
+
+            if (filtered.length === simConnections.length) {
+                throw new Error('Connection not found');
+            }
+
+            await db.saveCollection('sim_connections', filtered);
+            console.log(`[ConnectionService] Virtual connection removed: ${userId} <-> ${targetUserId}`);
+            return;
+        }
+
+        const session = await neo4jService.getSession();
+        try {
+            const result = await session.run(`
+                MATCH (a:User {userId: $userId})-[r:CONNECTED_WITH]-(b:User {userId: $targetUserId})
+                DELETE r
+                RETURN count(r) as deleted
+            `, { userId, targetUserId });
+
+            const deleted = result.records[0]?.get('deleted')?.toNumber?.() || 0;
+            if (deleted === 0) {
+                throw new Error('Connection not found');
+            }
+            console.log(`[ConnectionService] Neo4j connection removed: ${userId} <-> ${targetUserId}`);
+        } finally {
+            await session.close();
+        }
+    }
+
     /* ═══════════════════════════════════════════════════════════════
        Connection Type Change Requests — Mutual Approval
        Both users must agree before the connection type is updated.
