@@ -1198,6 +1198,19 @@ export const api = {
     },
 
 
+    // ── Dashboard Stats ────────────────────────────────────────────
+
+    async getDashboardStats(): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const response = await fetch('/api/dashboard/stats', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Failed to fetch dashboard stats');
+        return response.json();
+    },
+
+
     // ── Life Areas (Dashboard) ───────────────────────────────────────
 
     async getDashboardSummary(): Promise<any> {

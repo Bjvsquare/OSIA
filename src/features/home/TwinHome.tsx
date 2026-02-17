@@ -13,6 +13,43 @@ import { LifeAreaRadar } from './components/LifeAreaRadar';
 import { ActiveFocusAreas } from './components/ActiveFocusAreas';
 import { NeedsAttentionPanel } from './components/NeedsAttentionPanel';
 import { OneTodayCard } from './components/OneTodayCard';
+import { ActivityPulse } from './components/ActivityPulse';
+import { ScoreTrajectory } from './components/ScoreTrajectory';
+import { PracticeHeatmap } from './components/PracticeHeatmap';
+import { WeeklyInsight } from './components/WeeklyInsight';
+import BlueprintSummary from './components/BlueprintSummary';
+import EvolutionTimeline from './components/EvolutionTimeline';
+import JourneyLevel from './components/JourneyLevel';
+import ConnectionOrbit from './components/ConnectionOrbit';
+
+/* ── Widget Error Boundary ─────────────────────────────── */
+class WidgetErrorBoundary extends React.Component<
+    { children: React.ReactNode; name: string },
+    { hasError: boolean; error: string }
+> {
+    constructor(props: any) {
+        super(props);
+        this.state = { hasError: false, error: '' };
+    }
+    static getDerivedStateFromError(error: Error) {
+        return { hasError: true, error: error.message };
+    }
+    componentDidCatch(error: Error) {
+        console.error(`[Dashboard Widget: ${this.props.name}]`, error);
+    }
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div className="p-4 rounded-xl border border-white/5 bg-white/[0.02] text-center">
+                    <p className="text-[10px] text-white/20 font-bold">
+                        Widget failed to load
+                    </p>
+                </div>
+            );
+        }
+        return this.props.children;
+    }
+}
 
 /* ═══════════════════════════════════════════════════════════
    TwinHome — Life Command Center Dashboard
@@ -51,6 +88,7 @@ export function TwinHome() {
     const [tempScore, setTempScore] = useState(5);
     const [focusGoal, setFocusGoal] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
+    const [stats, setStats] = useState<any>(null);
 
     // Handle Stripe checkout return
     React.useEffect(() => {
@@ -65,8 +103,12 @@ export function TwinHome() {
 
     const fetchDashboard = useCallback(async () => {
         try {
-            const data = await api.getDashboardSummary();
+            const [data, statsData] = await Promise.all([
+                api.getDashboardSummary(),
+                api.getDashboardStats().catch(() => null),
+            ]);
             setDashboard(data);
+            if (statsData) setStats(statsData);
         } catch (error) {
             console.error('[Dashboard] Failed to fetch:', error);
         } finally {
@@ -188,6 +230,32 @@ export function TwinHome() {
                     </div>
                 </motion.div>
 
+                {/* ▷ Activity Pulse — sparkline stats strip */}
+                {stats && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.05 }}
+                    >
+                        <WidgetErrorBoundary name="ActivityPulse">
+                            <ActivityPulse
+                                practiceStreak={stats.practiceStreak || 0}
+                                weeklyCompletions={stats.weeklyCompletions || 0}
+                                weeklyRefinements={stats.weeklyRefinements || 0}
+                                overallScore={stats.overallScore || 0}
+                                completionSparkline={stats.completionSparkline || []}
+                                refinementSparkline={stats.refinementSparkline || []}
+                                scoreSparkline={stats.scoreSparkline || []}
+                                completionDelta={stats.completionDelta || 0}
+                                refinementDelta={stats.refinementDelta || 0}
+                                scoreDelta={stats.scoreDelta || 0}
+                                protocolsActive={stats.protocols?.activeCount || 0}
+                                blueprintDepth={stats.blueprint?.depthScore || 0}
+                            />
+                        </WidgetErrorBoundary>
+                    </motion.div>
+                )}
+
                 {/* ▷ Main Grid: Radar + Right Column */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
@@ -269,6 +337,138 @@ export function TwinHome() {
                     </div>
                 </div>
 
+                {/* ▷ Score Trajectory Chart */}
+                {stats?.scoreTrendByArea && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.45 }}
+                    >
+                        <WidgetErrorBoundary name="ScoreTrajectory">
+                            <ScoreTrajectory scoreTrendByArea={stats.scoreTrendByArea} />
+                        </WidgetErrorBoundary>
+                    </motion.div>
+                )}
+
+                {/* ▷ Practice Heatmap */}
+                {stats?.completionsByDay && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                    >
+                        <WidgetErrorBoundary name="PracticeHeatmap">
+                            <PracticeHeatmap
+                                completionsByDay={stats.completionsByDay}
+                                activeDaysThisWeek={stats.activeDaysThisWeek || 0}
+                                totalCompletions={stats.totalCompletions || 0}
+                            />
+                        </WidgetErrorBoundary>
+                    </motion.div>
+                )}
+
+                {/* ▷ Weekly Insight & Milestones */}
+                {stats && (stats.insights?.length > 0 || stats.milestones?.length > 0) && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.55 }}
+                    >
+                        <WidgetErrorBoundary name="WeeklyInsight">
+                            <WeeklyInsight
+                                insights={stats.insights || []}
+                                milestones={stats.milestones || []}
+                            />
+                        </WidgetErrorBoundary>
+                    </motion.div>
+                )}
+
+                {/* ▷ Blueprint + Evolution (2-column grid) */}
+                {stats && (stats.blueprint || stats.evolution) && (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {stats.blueprint && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.6 }}
+                            >
+                                <WidgetErrorBoundary name="BlueprintSummary">
+                                    <BlueprintSummary
+                                        strengths={stats.blueprint.strengths || []}
+                                        developing={stats.blueprint.developing || []}
+                                        depthScore={stats.blueprint.depthScore || 0}
+                                        snapshotCount={stats.blueprint.snapshotCount || 0}
+                                        totalTraits={stats.blueprint.totalTraits || 0}
+                                    />
+                                </WidgetErrorBoundary>
+                            </motion.div>
+                        )}
+
+                        {stats.evolution && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.65 }}
+                            >
+                                <WidgetErrorBoundary name="EvolutionTimeline">
+                                    <EvolutionTimeline
+                                        overallGrowth={stats.evolution.overallGrowth || 0}
+                                        stabilityGrowth={stats.evolution.stabilityGrowth || 0}
+                                        patternsDiscovered={stats.evolution.patternsDiscovered || 0}
+                                        improvementAreas={stats.evolution.improvementAreas || []}
+                                        attentionAreas={stats.evolution.attentionAreas || []}
+                                        patternChanges={stats.evolution.patternChanges || []}
+                                        snapshotCount={stats.evolution.snapshotCount || 0}
+                                    />
+                                </WidgetErrorBoundary>
+                            </motion.div>
+                        )}
+                    </div>
+                )}
+
+                {/* ▷ Journey + Connection (2-column grid) */}
+                {stats && (stats.journey || stats.connections) && (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {stats.journey && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.7 }}
+                            >
+                                <WidgetErrorBoundary name="JourneyLevel">
+                                    <JourneyLevel
+                                        level={stats.journey.level || 1}
+                                        title={stats.journey.title || 'Explorer'}
+                                        totalPoints={stats.journey.totalPoints || 0}
+                                        pointsToNextLevel={stats.journey.pointsToNextLevel || 100}
+                                        nextLevelTitle={stats.journey.nextLevelTitle}
+                                        badgesEarned={stats.journey.badgesEarned || []}
+                                        creditDiscount={stats.journey.creditDiscount || 0}
+                                        totalCredits={stats.journey.totalCredits || 0}
+                                    />
+                                </WidgetErrorBoundary>
+                            </motion.div>
+                        )}
+
+                        {stats.connections && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.75 }}
+                            >
+                                <WidgetErrorBoundary name="ConnectionOrbit">
+                                    <ConnectionOrbit
+                                        totalCount={stats.connections.totalCount || 0}
+                                        pendingCount={stats.connections.pendingCount || 0}
+                                        typeBreakdown={stats.connections.typeBreakdown || []}
+                                        recentAvatars={stats.connections.recentAvatars || []}
+                                    />
+                                </WidgetErrorBoundary>
+                            </motion.div>
+                        )}
+                    </div>
+                )}
+
                 {/* ▷ Quick Actions */}
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
@@ -296,140 +496,144 @@ export function TwinHome() {
                Score Edit Modal
             ────────────────────────────────────────────── */}
             <AnimatePresence>
-                {scoreEditModal && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4"
-                        onClick={() => setScoreEditModal(null)}
-                    >
+                {
+                    scoreEditModal && (
                         <motion.div
-                            initial={{ scale: 0.9, y: 20 }}
-                            animate={{ scale: 1, y: 0 }}
-                            exit={{ scale: 0.9, y: 20 }}
-                            className="bg-[#0a1128] border border-white/10 rounded-3xl p-6 w-full max-w-sm shadow-2xl"
-                            onClick={e => e.stopPropagation()}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4"
+                            onClick={() => setScoreEditModal(null)}
                         >
-                            <div className="flex items-center justify-between mb-5">
-                                <h3 className="text-sm font-bold text-white">
-                                    {DOMAIN_META[scoreEditModal.domain]?.icon}{' '}
-                                    {DOMAIN_META[scoreEditModal.domain]?.label || scoreEditModal.domain}
-                                </h3>
-                                <button onClick={() => setScoreEditModal(null)} className="text-white/30 hover:text-white">
-                                    <X className="w-4 h-4" />
-                                </button>
-                            </div>
-
-                            <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-4">
-                                How healthy is this area? (1-10)
-                            </p>
-
-                            {/* Score Slider */}
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-4">
-                                    <input
-                                        type="range"
-                                        min={1}
-                                        max={10}
-                                        value={tempScore}
-                                        onChange={e => setTempScore(parseInt(e.target.value))}
-                                        className="flex-1 h-2 rounded-full appearance-none bg-white/10 accent-osia-teal-500"
-                                    />
-                                    <span className={`text-2xl font-black min-w-[2ch] text-right ${tempScore >= 7 ? 'text-green-400' : tempScore >= 4 ? 'text-amber-400' : 'text-red-400'
-                                        }`}>
-                                        {tempScore}
-                                    </span>
+                            <motion.div
+                                initial={{ scale: 0.9, y: 20 }}
+                                animate={{ scale: 1, y: 0 }}
+                                exit={{ scale: 0.9, y: 20 }}
+                                className="bg-[#0a1128] border border-white/10 rounded-3xl p-6 w-full max-w-sm shadow-2xl"
+                                onClick={e => e.stopPropagation()}
+                            >
+                                <div className="flex items-center justify-between mb-5">
+                                    <h3 className="text-sm font-bold text-white">
+                                        {DOMAIN_META[scoreEditModal.domain]?.icon}{' '}
+                                        {DOMAIN_META[scoreEditModal.domain]?.label || scoreEditModal.domain}
+                                    </h3>
+                                    <button onClick={() => setScoreEditModal(null)} className="text-white/30 hover:text-white">
+                                        <X className="w-4 h-4" />
+                                    </button>
                                 </div>
 
-                                {/* Score labels */}
-                                <div className="flex justify-between text-[8px] font-bold uppercase tracking-wider px-1">
-                                    <span className="text-red-400/50">Crisis</span>
-                                    <span className="text-amber-400/50">Okay</span>
-                                    <span className="text-green-400/50">Thriving</span>
-                                </div>
+                                <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-4">
+                                    How healthy is this area? (1-10)
+                                </p>
 
-                                <button
-                                    onClick={handleScoreSave}
-                                    disabled={actionLoading}
-                                    className="w-full py-2.5 rounded-xl bg-osia-teal-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-osia-teal-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                                >
-                                    {actionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
-                                    Save Score
-                                </button>
-                            </div>
+                                {/* Score Slider */}
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-4">
+                                        <input
+                                            type="range"
+                                            min={1}
+                                            max={10}
+                                            value={tempScore}
+                                            onChange={e => setTempScore(parseInt(e.target.value))}
+                                            className="flex-1 h-2 rounded-full appearance-none bg-white/10 accent-osia-teal-500"
+                                        />
+                                        <span className={`text-2xl font-black min-w-[2ch] text-right ${tempScore >= 7 ? 'text-green-400' : tempScore >= 4 ? 'text-amber-400' : 'text-red-400'
+                                            }`}>
+                                            {tempScore}
+                                        </span>
+                                    </div>
+
+                                    {/* Score labels */}
+                                    <div className="flex justify-between text-[8px] font-bold uppercase tracking-wider px-1">
+                                        <span className="text-red-400/50">Crisis</span>
+                                        <span className="text-amber-400/50">Okay</span>
+                                        <span className="text-green-400/50">Thriving</span>
+                                    </div>
+
+                                    <button
+                                        onClick={handleScoreSave}
+                                        disabled={actionLoading}
+                                        className="w-full py-2.5 rounded-xl bg-osia-teal-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-osia-teal-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                    >
+                                        {actionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                                        Save Score
+                                    </button>
+                                </div>
+                            </motion.div>
                         </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                    )
+                }
+            </AnimatePresence >
 
             {/* ──────────────────────────────────────────────
                Add Focus Modal
             ────────────────────────────────────────────── */}
             <AnimatePresence>
-                {focusModal && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4"
-                        onClick={() => setFocusModal(false)}
-                    >
+                {
+                    focusModal && (
                         <motion.div
-                            initial={{ scale: 0.9, y: 20 }}
-                            animate={{ scale: 1, y: 0 }}
-                            exit={{ scale: 0.9, y: 20 }}
-                            className="bg-[#0a1128] border border-white/10 rounded-3xl p-6 w-full max-w-md shadow-2xl"
-                            onClick={e => e.stopPropagation()}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4"
+                            onClick={() => setFocusModal(false)}
                         >
-                            <div className="flex items-center justify-between mb-5">
-                                <div className="flex items-center gap-2">
-                                    <Target className="w-4 h-4 text-osia-teal-500" />
-                                    <h3 className="text-sm font-bold text-white">Set Active Focus</h3>
+                            <motion.div
+                                initial={{ scale: 0.9, y: 20 }}
+                                animate={{ scale: 1, y: 0 }}
+                                exit={{ scale: 0.9, y: 20 }}
+                                className="bg-[#0a1128] border border-white/10 rounded-3xl p-6 w-full max-w-md shadow-2xl"
+                                onClick={e => e.stopPropagation()}
+                            >
+                                <div className="flex items-center justify-between mb-5">
+                                    <div className="flex items-center gap-2">
+                                        <Target className="w-4 h-4 text-osia-teal-500" />
+                                        <h3 className="text-sm font-bold text-white">Set Active Focus</h3>
+                                    </div>
+                                    <button onClick={() => setFocusModal(false)} className="text-white/30 hover:text-white">
+                                        <X className="w-4 h-4" />
+                                    </button>
                                 </div>
-                                <button onClick={() => setFocusModal(false)} className="text-white/30 hover:text-white">
-                                    <X className="w-4 h-4" />
-                                </button>
-                            </div>
 
-                            <p className="text-[10px] text-white/30 mb-4">
-                                Choose an area to focus on. You can have up to 3 active focus areas.
-                            </p>
+                                <p className="text-[10px] text-white/30 mb-4">
+                                    Choose an area to focus on. You can have up to 3 active focus areas.
+                                </p>
 
-                            <div className="space-y-2 mb-4 max-h-[250px] overflow-y-auto">
-                                {availableFocusAreas.map((area: any) => {
-                                    const meta = DOMAIN_META[area.domain] || { label: area.domain, icon: '📊' };
-                                    return (
-                                        <button
-                                            key={area.domain}
-                                            onClick={() => handleAddFocus(area.domain)}
-                                            disabled={actionLoading}
-                                            className="w-full flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] transition-colors text-left group disabled:opacity-50"
-                                        >
-                                            <span className="text-lg">{meta.icon}</span>
-                                            <div className="flex-1">
-                                                <p className="text-xs font-bold text-white/70 group-hover:text-white">{meta.label}</p>
-                                                <p className="text-[9px] text-white/25">Score: {area.healthScore}/10</p>
-                                            </div>
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                                <div className="space-y-2 mb-4 max-h-[250px] overflow-y-auto">
+                                    {availableFocusAreas.map((area: any) => {
+                                        const meta = DOMAIN_META[area.domain] || { label: area.domain, icon: '📊' };
+                                        return (
+                                            <button
+                                                key={area.domain}
+                                                onClick={() => handleAddFocus(area.domain)}
+                                                disabled={actionLoading}
+                                                className="w-full flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] transition-colors text-left group disabled:opacity-50"
+                                            >
+                                                <span className="text-lg">{meta.icon}</span>
+                                                <div className="flex-1">
+                                                    <p className="text-xs font-bold text-white/70 group-hover:text-white">{meta.label}</p>
+                                                    <p className="text-[9px] text-white/25">Score: {area.healthScore}/10</p>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
 
-                            {/* Optional goal input */}
-                            <input
-                                type="text"
-                                value={focusGoal}
-                                onChange={e => setFocusGoal(e.target.value)}
-                                placeholder="Optional: What's your goal for this area?"
-                                className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-osia-teal-500/50 mb-3"
-                            />
+                                {/* Optional goal input */}
+                                <input
+                                    type="text"
+                                    value={focusGoal}
+                                    onChange={e => setFocusGoal(e.target.value)}
+                                    placeholder="Optional: What's your goal for this area?"
+                                    className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-osia-teal-500/50 mb-3"
+                                />
+                            </motion.div>
                         </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                    )
+                }
+            </AnimatePresence >
 
             <ToastComponent />
-        </div>
+        </div >
     );
 }
