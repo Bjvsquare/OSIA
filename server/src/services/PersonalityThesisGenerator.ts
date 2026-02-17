@@ -109,22 +109,32 @@ class FoundationalOverviewGenerator implements SectionGenerator {
         if (stablePatterns.length > 0) {
             const patternNames = stablePatterns.slice(0, 3).map(p => p.name).join(', ');
             content += `Your blueprint reveals ${stablePatterns.length} stable patterns, including: **${patternNames}**. `;
+        } else if (claims.length > 0) {
+            // Fallback for new users: synthesize from available claims
+            const uniqueLayers = [...new Set(claims.map(c => c.layerId))];
+            content += `Your initial blueprint captures signals across ${uniqueLayers.length} dimensions of your personality. `;
+            const topClaims = claims.filter(c => c.confidence !== 'emerging').slice(0, 3);
+            if (topClaims.length > 0) {
+                content += `Early patterns suggest a personality shaped by how you process the world — through your natural dispositions, energy orientation, and core values. `;
+            }
         }
 
         // Theme intro
         if (primaryThemes.length > 0) {
             const themeNames = primaryThemes.map(t => t.name).join(' and ');
             content += `Central to your arc is the tension of **${themeNames}**.\n\n`;
+        } else {
+            content += `As more data accumulates, the deeper tensions and themes in your personality will come into sharper focus.\n\n`;
         }
 
         content += `*This thesis is a working mirror — it describes patterns we see, not fixed truths about who you are.*`;
 
-        const { clean, violations } = VocabularyEnforcer.enforce(content);
+        const { clean } = VocabularyEnforcer.enforce(content);
 
         return {
             sectionType: 'foundational_overview',
             content: clean,
-            sourceClaimIds: [],
+            sourceClaimIds: claims.slice(0, 5).map(c => c.claimId),
             sourcePatternIds: stablePatterns.map(p => p.patternId),
             sourceThemeIds: primaryThemes.map(t => t.themeId),
             wordCount: clean.split(/\s+/).length
@@ -201,24 +211,43 @@ class CoreStrengthsGenerator implements SectionGenerator {
 
         content += 'These patterns represent where you operate most naturally and effectively:\n\n';
 
-        strengthPatterns.slice(0, 4).forEach(pattern => {
-            content += `**${pattern.name}**: ${pattern.oneLiner}\n\n`;
-
-            // Find supporting claims
-            const supporting = strengthClaims.filter(c =>
-                pattern.supportingClaimIds.includes(c.claimId)
-            );
-            if (supporting.length > 0) {
-                content += `> ${supporting[0].text}\n\n`;
+        if (strengthPatterns.length > 0) {
+            strengthPatterns.slice(0, 4).forEach(pattern => {
+                content += `**${pattern.name}**: ${pattern.oneLiner}\n\n`;
+                const supporting = strengthClaims.filter(c =>
+                    pattern.supportingClaimIds.includes(c.claimId)
+                );
+                if (supporting.length > 0) {
+                    content += `> ${supporting[0].text}\n\n`;
+                }
+            });
+        } else if (strengthClaims.length > 0) {
+            // Fallback: use strength claims directly
+            strengthClaims.slice(0, 4).forEach(c => {
+                content += `> ${c.text}\n\n`;
+            });
+        } else {
+            // Deep fallback: infer strengths from highest confidence claims
+            const highConfidence = [...claims]
+                .filter(c => c.confidence === 'developed' || c.confidence === 'integrated' || c.confidence === 'moderate')
+                .slice(0, 4);
+            if (highConfidence.length > 0) {
+                content += 'Based on your foundational signals, your natural strengths appear in these areas:\n\n';
+                highConfidence.forEach(c => {
+                    const layerName = LAYER_DEFINITIONS[c.layerId]?.name || `Layer ${c.layerId}`;
+                    content += `**${layerName}**: ${c.text}\n\n`;
+                });
+            } else {
+                content += 'Your core strengths will become clearer as you engage with more protocols and reflections. Each interaction adds signal to your blueprint.\n\n';
             }
-        });
+        }
 
         const { clean } = VocabularyEnforcer.enforce(content);
 
         return {
             sectionType: 'core_strengths',
             content: clean,
-            sourceClaimIds: strengthClaims.map(c => c.claimId),
+            sourceClaimIds: (strengthClaims.length > 0 ? strengthClaims : claims.slice(0, 4)).map(c => c.claimId),
             sourcePatternIds: strengthPatterns.map(p => p.patternId),
             sourceThemeIds: [],
             wordCount: clean.split(/\s+/).length
@@ -253,6 +282,24 @@ class FrictionZonesGenerator implements SectionGenerator {
                 content += `- ${c.text}\n`;
             });
             content += '\n';
+        }
+
+        // Fallback for new users: infer friction from lower-confidence or contrasting claims
+        if (frictionClaims.length === 0 && stressClaims.length === 0) {
+            const lowerConfidence = claims.filter(c => c.confidence === 'emerging' || c.confidence === 'moderate');
+            if (lowerConfidence.length > 0) {
+                content += '### Emerging Tensions\n\n';
+                content += 'While your friction zones are still being mapped, these early signals hint at areas where you may experience internal tension:\n\n';
+                lowerConfidence.slice(0, 3).forEach(c => {
+                    const layerName = LAYER_DEFINITIONS[c.layerId]?.name || `Layer ${c.layerId}`;
+                    content += `- **${layerName}**: The patterns here suggest a dynamic still finding its equilibrium. ${c.text}\n`;
+                });
+                content += '\n';
+            } else {
+                content += '### Areas to Watch\n\n';
+                content += 'Your friction zones have not yet surfaced clearly in the data. This is common early in the journey — as you engage with protocols and thought experiments, the system will identify where pressure tends to build and how you naturally respond to challenge.\n\n';
+                content += 'Every personality carries creative tensions. These tensions are not weaknesses — they are the edges where growth happens most naturally.\n\n';
+            }
         }
 
         const { clean } = VocabularyEnforcer.enforce(content);
@@ -309,12 +356,37 @@ class BehavioralRelationalGenerator implements SectionGenerator {
             content += '\n';
         }
 
+        // Fallback for new users: extrapolate relational tendencies from core layers
+        if (relevantClaims.length === 0 && relevantPatterns.length === 0) {
+            const coreClaims = claims.filter(c => [1, 2, 3, 4, 5].includes(c.layerId));
+            if (coreClaims.length > 0) {
+                content += '### Relational Indicators\n\n';
+                content += 'While your relational layers are still developing, your foundational signals offer early clues about how you may show up in relationships:\n\n';
+
+                // Extrapolate from core disposition
+                const dispositionClaims = coreClaims.filter(c => c.layerId === 1);
+                if (dispositionClaims.length > 0) {
+                    content += `Your core disposition influences how others experience you — ${dispositionClaims[0].text.toLowerCase()} This naturally shapes your relational dynamics.\n\n`;
+                }
+
+                // Energy and communication style
+                const energyClaims = coreClaims.filter(c => c.layerId === 2);
+                if (energyClaims.length > 0) {
+                    content += `Your energetic orientation suggests a particular communication rhythm. ${energyClaims[0].text}\n\n`;
+                }
+
+                content += 'As you connect with others on the platform and complete relational protocols, a richer picture of your behavioral tendencies will emerge.\n\n';
+            } else {
+                content += 'Your behavioral and relational patterns will become visible as you interact with protocols and connect with others. The system maps how your core architecture influences your relationships, work style, and boundaries.\n\n';
+            }
+        }
+
         const { clean } = VocabularyEnforcer.enforce(content);
 
         return {
             sectionType: 'behavioral_relational',
             content: clean,
-            sourceClaimIds: relevantClaims.map(c => c.claimId),
+            sourceClaimIds: (relevantClaims.length > 0 ? relevantClaims : claims.filter(c => [1, 2, 3, 4, 5].includes(c.layerId))).map(c => c.claimId),
             sourcePatternIds: relevantPatterns.map(p => p.patternId),
             sourceThemeIds: [],
             wordCount: clean.split(/\s+/).length
@@ -357,12 +429,41 @@ class GrowthTrajectoriesGenerator implements SectionGenerator {
             content += '\n';
         }
 
+        // Fallback for new users: generate growth directions from available data
+        if (relevantClaims.length === 0 && allGrowthEdges.length === 0) {
+            const allClaims = [...claims];
+            const uniqueLayers = [...new Set(allClaims.map(c => c.layerId))];
+
+            content += '### Your Growth Landscape\n\n';
+            content += 'Your journey of self-discovery is just beginning. Based on your foundational signals, here are areas where growth may unfold:\n\n';
+
+            // Generate growth directions from whatever layers are populated
+            if (uniqueLayers.includes(1)) {
+                content += '- **Deepening Self-Awareness**: Your core disposition patterns offer a starting point. Explore protocols that challenge your default responses and reveal hidden dimensions.\n';
+            }
+            if (uniqueLayers.includes(2)) {
+                content += '- **Energy Management**: Understanding your natural energy cycles can unlock more sustainable engagement patterns and prevent burnout.\n';
+            }
+            if (uniqueLayers.includes(3) || uniqueLayers.includes(4)) {
+                content += '- **Cognitive Flexibility**: Your processing style has natural strengths — growth often comes from intentionally practicing the complementary approach.\n';
+            }
+            if (uniqueLayers.includes(5)) {
+                content += '- **Values Integration**: When your actions consistently align with your core values, a sense of integrity and purpose deepens naturally.\n';
+            }
+
+            content += '\n### Recommended Next Steps\n\n';
+            content += '- Complete thought experiments to add depth to your blueprint\n';
+            content += '- Engage with daily protocols to develop consistency signals\n';
+            content += '- Connect with others to unlock relational intelligence layers\n';
+            content += '\n';
+        }
+
         const { clean } = VocabularyEnforcer.enforce(content);
 
         return {
             sectionType: 'growth_trajectories',
             content: clean,
-            sourceClaimIds: relevantClaims.map(c => c.claimId),
+            sourceClaimIds: (relevantClaims.length > 0 ? relevantClaims : claims.slice(0, 3)).map(c => c.claimId),
             sourcePatternIds: patterns.map(p => p.patternId),
             sourceThemeIds: [],
             wordCount: clean.split(/\s+/).length
@@ -382,6 +483,10 @@ class ClosingReflectionGenerator implements SectionGenerator {
             content += 'The tensions you navigate—';
             content += themes.slice(0, 2).map(t => t.name).join(' and ');
             content += '—are not problems to solve but polarities to hold.\n\n';
+        } else if (claims.length > 0) {
+            const uniqueLayers = [...new Set(claims.map(c => c.layerId))];
+            content += `Your thesis currently draws from signals across ${uniqueLayers.length} personality layers, with ${claims.length} distinct observations mapped so far. `;
+            content += 'As you engage with more of the platform, each interaction adds resolution to this portrait.\n\n';
         }
 
         content += '*This thesis will evolve as you do. Use it as a mirror, not a map.*\n\n';
@@ -395,8 +500,10 @@ class ClosingReflectionGenerator implements SectionGenerator {
             content += `Your patterns show **${Math.round(avgStability * 100)}% stability** — these are well-established dynamics.`;
         } else if (avgStability >= 0.4) {
             content += `Your patterns are still **emerging** — expect refinement as more data accumulates.`;
-        } else {
+        } else if (patterns.length > 0) {
             content += `We're still learning your patterns. This thesis will become more precise with time.`;
+        } else {
+            content += `This is the beginning of your OSIA journey. Your thesis will deepen with every protocol, thought experiment, and connection you make. The system learns as you do — and the blueprint it builds becomes more precise, more personal, and more powerful over time.`;
         }
 
         const { clean } = VocabularyEnforcer.enforce(content);
