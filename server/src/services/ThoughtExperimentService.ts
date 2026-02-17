@@ -125,142 +125,430 @@ const REFINEMENT_RATE = 0.04;   // Slightly gentler than protocol recalibration 
 const CONFIDENCE_BOOST = 0.015; // Each refinement increases confidence
 
 // ────────────────────────────────────────────────────────────────────────────
-// Calibration templates — structured, click-based interactions
+// Calibration templates — PER-LAYER unique questions (click-based)
+// Each layer gets 5 unique questions across agreement/scenario/frequency types
+// to prevent duplicate questions across layers in the same category.
 // ────────────────────────────────────────────────────────────────────────────
 
-const CALIBRATION_TEMPLATES: Record<string, { type: string; statement: string; options: { label: string; emoji?: string }[] }[]> = {
-    Foundation: [
+type CalibrationTemplate = { id: string; type: string; statement: string; options: { label: string; emoji?: string }[] };
+
+const LAYER_CALIBRATION_TEMPLATES: Record<number, CalibrationTemplate[]> = {
+    // ── L1: Core Disposition (Foundation) ──
+    1: [
         {
-            type: 'agreement', statement: 'Your digital twin sees your {layer} as: "{description}"', options: [
+            id: 'L1_A1', type: 'agreement', statement: 'Your core disposition is described as: "{description}"', options: [
                 { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
             ]
         },
         {
-            type: 'scenario', statement: 'When solving a new problem, you tend to...', options: [
-                { label: 'Plan methodically before acting', emoji: '📋' }, { label: 'Jump in and figure it out', emoji: '⚡' },
+            id: 'L1_A2', type: 'agreement', statement: 'If someone observed you for a week, they would describe your default mode as: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
             ]
         },
         {
-            type: 'frequency', statement: 'How often do you feel grounded and centred in your daily life?', options: [
+            id: 'L1_S1', type: 'scenario', statement: 'When you wake up with no plans, you naturally...', options: [
+                { label: 'Create structure for the day', emoji: '📋' }, { label: 'Let the day unfold', emoji: '🌊' },
+            ]
+        },
+        {
+            id: 'L1_S2', type: 'scenario', statement: 'Faced with uncertainty, your first instinct is to...', options: [
+                { label: 'Seek clarity and information', emoji: '🔍' }, { label: 'Trust the process and wait', emoji: '🧘' },
+            ]
+        },
+        {
+            id: 'L1_F1', type: 'frequency', statement: 'How often do you feel grounded and centred in your daily life?', options: [
                 { label: 'Always', emoji: '◆' }, { label: 'Often', emoji: '◇' }, { label: 'Sometimes', emoji: '○' }, { label: 'Rarely', emoji: '◌' }, { label: 'Never', emoji: '·' },
             ]
         },
     ],
-    Cognitive: [
+    // ── L2: Energy Orientation (Foundation) ──
+    2: [
         {
-            type: 'agreement', statement: 'Your cognitive method is described as: "{description}"', options: [
+            id: 'L2_A1', type: 'agreement', statement: 'Your energy pattern is described as: "{description}"', options: [
                 { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
             ]
         },
         {
-            type: 'scenario', statement: 'Before making an important decision, you first...', options: [
+            id: 'L2_A2', type: 'agreement', statement: 'The activities that truly recharge you are reflected in: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            id: 'L2_S1', type: 'scenario', statement: 'After a demanding day, you recharge by...', options: [
+                { label: 'Being alone with your thoughts', emoji: '🧘' }, { label: 'Connecting with others', emoji: '👥' },
+            ]
+        },
+        {
+            id: 'L2_S2', type: 'scenario', statement: 'Your energy peaks when you are...', options: [
+                { label: 'Creating something new', emoji: '🚀' }, { label: 'Deepening something familiar', emoji: '🌱' },
+            ]
+        },
+        {
+            id: 'L2_F1', type: 'frequency', statement: 'How often do you pay attention to what gives you energy vs what drains you?', options: [
+                { label: 'Always', emoji: '◆' }, { label: 'Often', emoji: '◇' }, { label: 'Sometimes', emoji: '○' }, { label: 'Rarely', emoji: '◌' }, { label: 'Never', emoji: '·' },
+            ]
+        },
+    ],
+    // ── L3: Cognitive Method (Cognitive) ──
+    3: [
+        {
+            id: 'L3_A1', type: 'agreement', statement: 'Your thinking style is described as: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            id: 'L3_A2', type: 'agreement', statement: 'When you explain your ideas to others, the way you think shows as: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            id: 'L3_S1', type: 'scenario', statement: 'Before making an important decision, you first...', options: [
                 { label: 'Analyse the data thoroughly', emoji: '📊' }, { label: 'Trust your intuition', emoji: '💡' },
             ]
         },
         {
-            type: 'frequency', statement: 'How often do you change your mind after sleeping on a decision?', options: [
+            id: 'L3_S2', type: 'scenario', statement: 'When learning something new, you prefer to...', options: [
+                { label: 'Understand the theory first', emoji: '📖' }, { label: 'Dive in and learn by doing', emoji: '🛠️' },
+            ]
+        },
+        {
+            id: 'L3_F1', type: 'frequency', statement: 'How often do you change your approach when your usual method isn\'t working?', options: [
                 { label: 'Always', emoji: '◆' }, { label: 'Often', emoji: '◇' }, { label: 'Sometimes', emoji: '○' }, { label: 'Rarely', emoji: '◌' }, { label: 'Never', emoji: '·' },
             ]
         },
     ],
-    Expression: [
+    // ── L4: Internal Foundation (Cognitive) ──
+    4: [
         {
-            type: 'agreement', statement: 'Your creative expression profile is: "{description}"', options: [
+            id: 'L4_A1', type: 'agreement', statement: 'Your internal operating system is described as: "{description}"', options: [
                 { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
             ]
         },
         {
-            type: 'scenario', statement: 'You do your best work when you have...', options: [
+            id: 'L4_A2', type: 'agreement', statement: 'The beliefs that drive your decisions most are captured in: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            id: 'L4_S1', type: 'scenario', statement: 'When your values conflict with what\'s practical, you tend to...', options: [
+                { label: 'Follow your principles', emoji: '⚖️' }, { label: 'Adapt to the situation', emoji: '🔄' },
+            ]
+        },
+        {
+            id: 'L4_S2', type: 'scenario', statement: 'When you change your mind about something important, it\'s usually because...', options: [
+                { label: 'New evidence convinced you', emoji: '📊' }, { label: 'Your feelings shifted', emoji: '❤️' },
+            ]
+        },
+        {
+            id: 'L4_F1', type: 'frequency', statement: 'How often do you question your own deeply held beliefs?', options: [
+                { label: 'Always', emoji: '◆' }, { label: 'Often', emoji: '◇' }, { label: 'Sometimes', emoji: '○' }, { label: 'Rarely', emoji: '◌' }, { label: 'Never', emoji: '·' },
+            ]
+        },
+    ],
+    // ── L5: Creative Expression (Expression) ──
+    5: [
+        {
+            id: 'L5_A1', type: 'agreement', statement: 'Your creative expression is described as: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            id: 'L5_A2', type: 'agreement', statement: 'When you create something meaningful, it feels like: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            id: 'L5_S1', type: 'scenario', statement: 'You do your best creative work when you have...', options: [
                 { label: 'Clear structure and deadlines', emoji: '📋' }, { label: 'Total creative freedom', emoji: '🎨' },
             ]
         },
         {
-            type: 'frequency', statement: 'How often do you take creative risks in your work or life?', options: [
+            id: 'L5_S2', type: 'scenario', statement: 'Your creativity shows up most in...', options: [
+                { label: 'How you solve problems', emoji: '🧩' }, { label: 'How you express yourself', emoji: '✨' },
+            ]
+        },
+        {
+            id: 'L5_F1', type: 'frequency', statement: 'How often do you take creative risks in your work or life?', options: [
                 { label: 'Always', emoji: '◆' }, { label: 'Often', emoji: '◇' }, { label: 'Sometimes', emoji: '○' }, { label: 'Rarely', emoji: '◌' }, { label: 'Never', emoji: '·' },
             ]
         },
     ],
-    Relational: [
+    // ── L6: Operational Rhythm (Expression) ──
+    6: [
         {
-            type: 'agreement', statement: 'Your relational stance reads: "{description}"', options: [
+            id: 'L6_A1', type: 'agreement', statement: 'Your daily rhythm is described as: "{description}"', options: [
                 { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
             ]
         },
         {
-            type: 'scenario', statement: 'When conflict arises, your instinct is to...', options: [
+            id: 'L6_A2', type: 'agreement', statement: 'Your natural pace of work is captured by: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            id: 'L6_S1', type: 'scenario', statement: 'You feel most productive when your day is...', options: [
+                { label: 'Carefully planned in advance', emoji: '🗓️' }, { label: 'Flexible and responsive', emoji: '🏄' },
+            ]
+        },
+        {
+            id: 'L6_S2', type: 'scenario', statement: 'When workload increases, you tend to...', options: [
+                { label: 'Prioritise ruthlessly', emoji: '✂️' }, { label: 'Power through everything', emoji: '💪' },
+            ]
+        },
+        {
+            id: 'L6_F1', type: 'frequency', statement: 'How often do your daily routines support your best work?', options: [
+                { label: 'Always', emoji: '◆' }, { label: 'Often', emoji: '◇' }, { label: 'Sometimes', emoji: '○' }, { label: 'Rarely', emoji: '◌' }, { label: 'Never', emoji: '·' },
+            ]
+        },
+    ],
+    // ── L7: Relational Stance (Relational) ──
+    7: [
+        {
+            id: 'L7_A1', type: 'agreement', statement: 'Your way of connecting with others is: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            id: 'L7_A2', type: 'agreement', statement: 'In your closest relationships, you tend to be: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            id: 'L7_S1', type: 'scenario', statement: 'When conflict arises, your instinct is to...', options: [
                 { label: 'Address it directly', emoji: '🗣️' }, { label: 'Give it space first', emoji: '🤝' },
             ]
         },
         {
-            type: 'frequency', statement: 'How often do you initiate deep conversations with people close to you?', options: [
+            id: 'L7_S2', type: 'scenario', statement: 'In relationships, you tend to be more...', options: [
+                { label: 'The one who initiates', emoji: '📞' }, { label: 'The one who responds', emoji: '👋' },
+            ]
+        },
+        {
+            id: 'L7_F1', type: 'frequency', statement: 'How often do you initiate deep conversations with people close to you?', options: [
                 { label: 'Always', emoji: '◆' }, { label: 'Often', emoji: '◇' }, { label: 'Sometimes', emoji: '○' }, { label: 'Rarely', emoji: '◌' }, { label: 'Never', emoji: '·' },
             ]
         },
     ],
-    Structural: [
+    // ── L8: Transformative Potential (Relational) ──
+    8: [
         {
-            type: 'agreement', statement: 'Your structural focus is described as: "{description}"', options: [
+            id: 'L8_A1', type: 'agreement', statement: 'Your capacity to transform through relationships is: "{description}"', options: [
                 { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
             ]
         },
         {
-            type: 'scenario', statement: 'You are currently in a phase of...', options: [
+            id: 'L8_A2', type: 'agreement', statement: 'The way relationships change you is captured by: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            id: 'L8_S1', type: 'scenario', statement: 'After a deeply meaningful conversation, you feel...', options: [
+                { label: 'Energised and inspired', emoji: '⚡' }, { label: 'Reflective and introspective', emoji: '🪞' },
+            ]
+        },
+        {
+            id: 'L8_S2', type: 'scenario', statement: 'When someone challenges your perspective, you tend to...', options: [
+                { label: 'Welcome it as growth', emoji: '🌱' }, { label: 'Protect your viewpoint', emoji: '🛡️' },
+            ]
+        },
+        {
+            id: 'L8_F1', type: 'frequency', statement: 'How often do your relationships push you to become a better version of yourself?', options: [
+                { label: 'Always', emoji: '◆' }, { label: 'Often', emoji: '◇' }, { label: 'Sometimes', emoji: '○' }, { label: 'Rarely', emoji: '◌' }, { label: 'Never', emoji: '·' },
+            ]
+        },
+    ],
+    // ── L9: Expansive Orientation (Structural) ──
+    9: [
+        {
+            id: 'L9_A1', type: 'agreement', statement: 'Your drive to expand is described as: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            id: 'L9_A2', type: 'agreement', statement: 'Your appetite for new experiences is reflected in: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            id: 'L9_S1', type: 'scenario', statement: 'You are currently in a phase of...', options: [
                 { label: 'Expanding and exploring', emoji: '🌱' }, { label: 'Consolidating and refining', emoji: '🔧' },
             ]
         },
         {
-            type: 'frequency', statement: 'How often do you redesign your systems, routines, or workflows?', options: [
+            id: 'L9_S2', type: 'scenario', statement: 'When offered a new opportunity, you tend to...', options: [
+                { label: 'Say yes and figure it out', emoji: '🚀' }, { label: 'Evaluate carefully first', emoji: '🔬' },
+            ]
+        },
+        {
+            id: 'L9_F1', type: 'frequency', statement: 'How often do you deliberately seek experiences outside your comfort zone?', options: [
                 { label: 'Always', emoji: '◆' }, { label: 'Often', emoji: '◇' }, { label: 'Sometimes', emoji: '○' }, { label: 'Rarely', emoji: '◌' }, { label: 'Never', emoji: '·' },
             ]
         },
     ],
-    Social: [
+    // ── L10: Architectural Focus (Structural) ──
+    10: [
         {
-            type: 'agreement', statement: 'Your social resonance is described as: "{description}"', options: [
+            id: 'L10_A1', type: 'agreement', statement: 'Your approach to building systems is: "{description}"', options: [
                 { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
             ]
         },
         {
-            type: 'scenario', statement: 'In a room of strangers, your default mode is to...', options: [
+            id: 'L10_A2', type: 'agreement', statement: 'How you organise your world is captured by: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            id: 'L10_S1', type: 'scenario', statement: 'When designing a new process, you start with...', options: [
+                { label: 'The big picture vision', emoji: '🏔️' }, { label: 'The practical details', emoji: '🔩' },
+            ]
+        },
+        {
+            id: 'L10_S2', type: 'scenario', statement: 'Your ideal workspace is...', options: [
+                { label: 'Minimalist and orderly', emoji: '🧹' }, { label: 'Creative and layered', emoji: '🎭' },
+            ]
+        },
+        {
+            id: 'L10_F1', type: 'frequency', statement: 'How often do you redesign your systems, routines, or workflows?', options: [
+                { label: 'Always', emoji: '◆' }, { label: 'Often', emoji: '◇' }, { label: 'Sometimes', emoji: '○' }, { label: 'Rarely', emoji: '◌' }, { label: 'Never', emoji: '·' },
+            ]
+        },
+    ],
+    // ── L11: Social Resonance (Social) ──
+    11: [
+        {
+            id: 'L11_A1', type: 'agreement', statement: 'Your social presence is described as: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            id: 'L11_A2', type: 'agreement', statement: 'How others experience your energy in a group is: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            id: 'L11_S1', type: 'scenario', statement: 'In a room of strangers, your default mode is to...', options: [
                 { label: 'Engage and connect', emoji: '🤗' }, { label: 'Observe and assess', emoji: '👁' },
             ]
         },
         {
-            type: 'frequency', statement: 'How often do you naturally lead conversations in group settings?', options: [
+            id: 'L11_S2', type: 'scenario', statement: 'At social events, you typically leave feeling...', options: [
+                { label: 'Energised and fulfilled', emoji: '⚡' }, { label: 'Drained but satisfied', emoji: '😌' },
+            ]
+        },
+        {
+            id: 'L11_F1', type: 'frequency', statement: 'How often do you naturally influence the mood of a group you\'re in?', options: [
                 { label: 'Always', emoji: '◆' }, { label: 'Often', emoji: '◇' }, { label: 'Sometimes', emoji: '○' }, { label: 'Rarely', emoji: '◌' }, { label: 'Never', emoji: '·' },
             ]
         },
     ],
-    Integration: [
+    // ── L12: Integrative Depth (Integration) ──
+    12: [
         {
-            type: 'agreement', statement: 'Your integrative depth is described as: "{description}"', options: [
+            id: 'L12_A1', type: 'agreement', statement: 'Your ability to synthesise different life areas is: "{description}"', options: [
                 { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
             ]
         },
         {
-            type: 'scenario', statement: 'When multiple priorities compete, you tend to...', options: [
+            id: 'L12_A2', type: 'agreement', statement: 'The coherence between your inner and outer life is: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            id: 'L12_S1', type: 'scenario', statement: 'When multiple priorities compete, you tend to...', options: [
                 { label: 'Focus deeply on one', emoji: '🎯' }, { label: 'Balance across several', emoji: '⚖️' },
             ]
         },
         {
-            type: 'frequency', statement: 'How often do different parts of your life feel aligned and coherent?', options: [
+            id: 'L12_S2', type: 'scenario', statement: 'Your approach to conflicting goals is to...', options: [
+                { label: 'Find a synthesis', emoji: '🧬' }, { label: 'Make a hard choice', emoji: '⚔️' },
+            ]
+        },
+        {
+            id: 'L12_F1', type: 'frequency', statement: 'How often do different parts of your life feel aligned and coherent?', options: [
                 { label: 'Always', emoji: '◆' }, { label: 'Often', emoji: '◇' }, { label: 'Sometimes', emoji: '○' }, { label: 'Rarely', emoji: '◌' }, { label: 'Never', emoji: '·' },
             ]
         },
     ],
-    Evolution: [
+    // ── L13: Navigational Interface (Integration) ──
+    13: [
         {
-            type: 'agreement', statement: 'Your evolutionary trajectory is described as: "{description}"', options: [
+            id: 'L13_A1', type: 'agreement', statement: 'How you navigate complexity is described as: "{description}"', options: [
                 { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
             ]
         },
         {
-            type: 'scenario', statement: 'Right now, you are focused more on...', options: [
+            id: 'L13_A2', type: 'agreement', statement: 'Your internal compass for decisions works like: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            id: 'L13_S1', type: 'scenario', statement: 'When life feels chaotic, your first move is to...', options: [
+                { label: 'Step back and get perspective', emoji: '🦅' }, { label: 'Take action to regain control', emoji: '🎮' },
+            ]
+        },
+        {
+            id: 'L13_S2', type: 'scenario', statement: 'You make your best decisions when you...', options: [
+                { label: 'Have space to reflect', emoji: '🌙' }, { label: 'Are under pressure', emoji: '⏱️' },
+            ]
+        },
+        {
+            id: 'L13_F1', type: 'frequency', statement: 'How often do you feel confident in your ability to navigate uncertain situations?', options: [
+                { label: 'Always', emoji: '◆' }, { label: 'Often', emoji: '◇' }, { label: 'Sometimes', emoji: '○' }, { label: 'Rarely', emoji: '◌' }, { label: 'Never', emoji: '·' },
+            ]
+        },
+    ],
+    // ── L14: Evolutionary Trajectory (Evolution) ──
+    14: [
+        {
+            id: 'L14_A1', type: 'agreement', statement: 'Your growth trajectory is described as: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            id: 'L14_A2', type: 'agreement', statement: 'The direction you are heading is captured by: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            id: 'L14_S1', type: 'scenario', statement: 'Right now, you are focused more on...', options: [
                 { label: 'Becoming someone new', emoji: '🚀' }, { label: 'Deepening who you are', emoji: '🌳' },
             ]
         },
         {
-            type: 'frequency', statement: 'How often do you feel you are evolving as a person?', options: [
+            id: 'L14_S2', type: 'scenario', statement: 'Your biggest growth in the last year came from...', options: [
+                { label: 'A challenge you faced', emoji: '🔥' }, { label: 'A choice you made', emoji: '🧭' },
+            ]
+        },
+        {
+            id: 'L14_F1', type: 'frequency', statement: 'How often do you feel you are evolving as a person?', options: [
+                { label: 'Always', emoji: '◆' }, { label: 'Often', emoji: '◇' }, { label: 'Sometimes', emoji: '○' }, { label: 'Rarely', emoji: '◌' }, { label: 'Never', emoji: '·' },
+            ]
+        },
+    ],
+    // ── L15: Systemic Integration (Evolution) ──
+    15: [
+        {
+            id: 'L15_A1', type: 'agreement', statement: 'Your ability to see the whole system is: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            id: 'L15_A2', type: 'agreement', statement: 'How all the parts of your life connect is reflected in: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            id: 'L15_S1', type: 'scenario', statement: 'When you think about your life as a whole, it feels like...', options: [
+                { label: 'A well-designed system', emoji: '⚙️' }, { label: 'A work in progress', emoji: '🏗️' },
+            ]
+        },
+        {
+            id: 'L15_S2', type: 'scenario', statement: 'Your impact on the world around you is mostly...', options: [
+                { label: 'Intentional and designed', emoji: '🎯' }, { label: 'Organic and emergent', emoji: '🌿' },
+            ]
+        },
+        {
+            id: 'L15_F1', type: 'frequency', statement: 'How often do you step back to see how all the parts of your life connect?', options: [
                 { label: 'Always', emoji: '◆' }, { label: 'Often', emoji: '◇' }, { label: 'Sometimes', emoji: '○' }, { label: 'Rarely', emoji: '◌' }, { label: 'Never', emoji: '·' },
             ]
         },
@@ -577,27 +865,15 @@ export class ThoughtExperimentService {
             ? trait.description.split('\n\n')[0].substring(0, 150)
             : meta.name;
 
-        // Pick calibration type based on confidence + recent history
-        const recent = await db.getCollection<any>('calibration_responses');
-        const recentForLayer = recent
-            .filter((r: any) => r.userId === userId && r.layerId === layerId)
-            .sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-            .slice(0, 3);
-        const recentTypes = recentForLayer.map((r: any) => r.calibrationType);
+        // Collect used question IDs for this layer to avoid repeats
+        const allCalibrations = await db.getCollection<any>('calibrations');
+        const usedForLayer = allCalibrations
+            .filter((c: any) => c.userId === userId && c.layerId === layerId)
+            .sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        const usedQuestionIds = new Set(usedForLayer.map((c: any) => c.questionId).filter(Boolean));
 
-        // Rotate through types, prefer agreement for low confidence
-        let calType: 'agreement' | 'scenario' | 'frequency';
-        if (trait.confidence < 0.5 && !recentTypes.includes('agreement')) {
-            calType = 'agreement';
-        } else if (!recentTypes.includes('scenario')) {
-            calType = 'scenario';
-        } else if (!recentTypes.includes('frequency')) {
-            calType = 'frequency';
-        } else {
-            calType = (['agreement', 'scenario', 'frequency'] as const)[Math.floor(Math.random() * 3)];
-        }
-
-        const card = this.buildCalibrationCard(calType, meta, trait, description);
+        // Pick an unused question from the layer-specific pool
+        const card = this.buildCalibrationCard(layerId, meta, trait, description, usedQuestionIds);
 
         const calibration = {
             id: `cal_${randomUUID().slice(0, 12)}`,
@@ -606,6 +882,7 @@ export class ThoughtExperimentService {
             traitId: meta.key,
             traitLabel: meta.name,
             category: meta.category,
+            questionId: card.questionId,
             currentScore: trait.score,
             currentConfidence: trait.confidence,
             ...card,
@@ -720,27 +997,46 @@ export class ThoughtExperimentService {
     }
 
     /**
-     * Build a calibration card with statement, options, and context.
+     * Build a calibration card from per-layer templates.
+     * Avoids questions already answered (by questionId) — so users
+     * always get a fresh question until the pool is exhausted.
      */
     private buildCalibrationCard(
-        type: 'agreement' | 'scenario' | 'frequency',
+        layerId: number,
         meta: { name: string; key: string; category: string },
         trait: any,
-        description: string
+        description: string,
+        usedQuestionIds: Set<string> = new Set()
     ): any {
-        const templates = CALIBRATION_TEMPLATES[meta.category] || CALIBRATION_TEMPLATES['Foundation'];
-        const pool = templates.filter(t => t.type === type);
-        const template = pool[Math.floor(Math.random() * pool.length)] || pool[0] || templates[0];
+        const pool = LAYER_CALIBRATION_TEMPLATES[layerId] || LAYER_CALIBRATION_TEMPLATES[1];
+
+        // Find unused questions first
+        let available = pool.filter((t: CalibrationTemplate) => !usedQuestionIds.has(t.id));
+
+        // If all exhausted, reset — allow re-use (user gets repeat only after completing full set)
+        if (available.length === 0) {
+            available = [...pool];
+        }
+
+        // Prefer agreement for low confidence, else pick randomly
+        let template: CalibrationTemplate;
+        if (trait.confidence < 0.5) {
+            const agreementQ = available.find((t: CalibrationTemplate) => t.type === 'agreement');
+            template = agreementQ || available[Math.floor(Math.random() * available.length)];
+        } else {
+            template = available[Math.floor(Math.random() * available.length)];
+        }
 
         const hydrated = {
             ...template,
+            questionId: template.id,
             statement: template.statement
                 .replace(/{description}/g, description)
                 .replace(/{score}/g, (trait.score * 100).toFixed(0) + '%')
                 .replace(/{layer}/g, meta.name),
         };
 
-        if (type === 'scenario' && hydrated.options) {
+        if (template.type === 'scenario' && hydrated.options) {
             hydrated.options = hydrated.options.map((o: any) => ({
                 ...o,
                 label: o.label

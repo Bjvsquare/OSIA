@@ -1,18 +1,19 @@
 import { useState, useEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '../../../components/ui/Card';
 import { api } from '../../../services/api';
 import {
     Brain, Heart, Target, Shield, Lightbulb, Compass, Zap, Network,
     Loader2, CheckCircle, Clock, ChevronLeft, Activity,
-    TrendingUp, TrendingDown, Minus, Flame
+    TrendingUp, TrendingDown, Minus, Flame, Send, PartyPopper, RotateCcw
 } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════════
    BlueprintRefine — Click-Based Calibration (Card Grid)
 
-   Flat card grid layout, mobile-first. Each layer is a
-   tappable card. Calibration is a full-screen card overlay.
+   • Per-layer unique questions — no duplicates
+   • Session tracking — calibrated cards show ✓
+   • Submit Refinement button → cascade data → clear → fresh round
    ═══════════════════════════════════════════════════════════ */
 
 interface LayerData {
@@ -42,7 +43,7 @@ interface CalibrationCard {
     currentConfidence: number;
 }
 
-type Phase = 'browse' | 'calibrating' | 'result';
+type Phase = 'browse' | 'calibrating' | 'result' | 'submitted';
 
 const CATEGORY_CONFIG: Record<string, { icon: React.ReactNode; color: string; bg: string }> = {
     Foundation: { icon: <Shield className="w-3.5 h-3.5" />, color: 'text-blue-400', bg: 'bg-blue-500/10' },
@@ -74,6 +75,10 @@ export function BlueprintRefine() {
     const [submitting, setSubmitting] = useState(false);
     const [result, setResult] = useState<any>(null);
 
+    // ── Session tracking ──────────────────────
+    const [calibratedInSession, setCalibratedInSession] = useState<Set<number>>(new Set());
+    const [submitLoading, setSubmitLoading] = useState(false);
+
     useEffect(() => { loadData(); }, []);
 
     const loadData = async () => {
@@ -101,16 +106,18 @@ export function BlueprintRefine() {
     }, [layers]);
 
     const stalestLayer = useMemo(() => {
+        // Find a layer that hasn't been calibrated this session
         let stalest: LayerData | null = null;
         let oldestTime = Infinity;
         for (const layer of layers) {
+            if (calibratedInSession.has(layer.layerId)) continue;
             const f = freshness[layer.layerId];
             if (!f?.lastRefined) return layer;
             const time = new Date(f.lastRefined).getTime();
             if (time < oldestTime) { oldestTime = time; stalest = layer; }
         }
         return stalest;
-    }, [layers, freshness]);
+    }, [layers, freshness, calibratedInSession]);
 
     const startCalibration = async (layer: LayerData) => {
         setSelectedLayer(layer);
@@ -132,6 +139,8 @@ export function BlueprintRefine() {
             const res = await api.submitCalibration(calibration.id, optionIndex);
             setResult(res);
             setPhase('result');
+            // Track this layer as calibrated in session
+            setCalibratedInSession(prev => new Set(prev).add(calibration.layerId));
             await loadData();
         } catch (err) {
             console.error('Calibration failed:', err);
@@ -147,6 +156,25 @@ export function BlueprintRefine() {
         setResult(null);
     };
 
+    // ── Submit Refinement Session ─────────────
+    const handleSubmitRefinement = async () => {
+        setSubmitLoading(true);
+        try {
+            await api.completeRefinementSession();
+            setPhase('submitted');
+        } catch (err) {
+            console.error('[Refine] Submit failed:', err);
+        } finally {
+            setSubmitLoading(false);
+        }
+    };
+
+    const startNewRound = () => {
+        setCalibratedInSession(new Set());
+        setPhase('browse');
+        loadData();
+    };
+
     // ─── Loading ──────────────────────────────
 
     if (loading) {
@@ -154,6 +182,51 @@ export function BlueprintRefine() {
             <div className="flex items-center justify-center py-16">
                 <Loader2 className="w-5 h-5 animate-spin text-osia-teal-500" />
             </div>
+        );
+    }
+
+    // ─── Submitted View ───────────────────────
+
+    if (phase === 'submitted') {
+        return (
+            <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="max-w-sm mx-auto text-center"
+            >
+                <Card className="p-8 bg-gradient-to-br from-osia-teal-500/10 to-purple-500/10 border-osia-teal-500/20">
+                    <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: 'spring', delay: 0.1 }}
+                        className="w-16 h-16 rounded-full bg-gradient-to-br from-osia-teal-500 to-purple-500 flex items-center justify-center mx-auto mb-5"
+                    >
+                        <PartyPopper className="w-8 h-8 text-white" />
+                    </motion.div>
+
+                    <h2 className="text-lg font-bold text-white mb-2">Refinement Captured</h2>
+                    <p className="text-xs text-white/40 mb-2">
+                        {calibratedInSession.size} layer{calibratedInSession.size !== 1 ? 's' : ''} calibrated
+                    </p>
+                    <p className="text-[10px] text-white/25 mb-6">
+                        Your data has been cascaded to your Blueprint, Insights, Thesis, and Patterns.
+                        Each refinement deepens OSIA's understanding of you.
+                    </p>
+
+                    <div className="space-y-2">
+                        <button
+                            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-osia-teal-500 to-purple-500 text-white text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                            onClick={startNewRound}
+                        >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                            Start New Round
+                        </button>
+                        <p className="text-[8px] text-white/15">
+                            New questions will be generated · no repeats until all answered
+                        </p>
+                    </div>
+                </Card>
+            </motion.div>
         );
     }
 
@@ -198,18 +271,22 @@ export function BlueprintRefine() {
                             ✓ Blueprint · OSIA · Connections · Teams
                         </p>
 
+                        <div className="text-[9px] text-white/30">
+                            {calibratedInSession.size} of {layers.length} calibrated this session
+                        </div>
+
                         <div className="space-y-2">
                             <button
                                 className="w-full py-2 rounded-xl bg-gradient-to-r from-osia-teal-500 to-purple-500 text-white text-[9px] font-black uppercase tracking-widest hover:opacity-90 transition-opacity"
-                                onClick={() => startCalibration(selectedLayer!)}
+                                onClick={backToBrowse}
                             >
-                                Calibrate Again
+                                Continue Calibrating
                             </button>
                             <button
                                 className="w-full py-2 rounded-xl border border-white/10 text-white/30 text-[9px] font-bold uppercase tracking-widest hover:text-white/50 transition-all"
                                 onClick={backToBrowse}
                             >
-                                Back
+                                Back to Overview
                             </button>
                         </div>
                     </div>
@@ -309,13 +386,16 @@ export function BlueprintRefine() {
                 )}
 
                 <p className="text-[8px] text-white/10 text-center mt-3">
-                    Tap to calibrate · Auto-cascades to all systems
+                    Tap to calibrate · Submit when done to save
                 </p>
             </motion.div>
         );
     }
 
     // ─── Browse View — Flat Card Grid ─────────
+
+    const uncalibratedLayers = layers.filter(l => !calibratedInSession.has(l.layerId));
+    const calibratedLayers = layers.filter(l => calibratedInSession.has(l.layerId));
 
     return (
         <div className="space-y-4">
@@ -326,6 +406,14 @@ export function BlueprintRefine() {
                         <Activity className="w-3 h-3 text-osia-teal-400" />
                         <span className="text-[9px] text-white/35">Confidence <span className="font-bold text-white">{(overallConfidence * 100).toFixed(0)}%</span></span>
                     </div>
+                    {calibratedInSession.size > 0 && (
+                        <div className="flex items-center gap-1">
+                            <CheckCircle className="w-3 h-3 text-green-400/60" />
+                            <span className="text-[9px] text-white/35">
+                                <span className="font-bold text-green-400">{calibratedInSession.size}</span> calibrated
+                            </span>
+                        </div>
+                    )}
                     <div className="flex items-center gap-1">
                         <Clock className="w-3 h-3 text-amber-400/60" />
                         <span className="text-[9px] text-white/35">{Object.values(freshness).filter(f => !f.lastRefined).length} new</span>
@@ -341,52 +429,120 @@ export function BlueprintRefine() {
                 )}
             </Card>
 
-            {/* Flat card grid — all layers */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {layers.map((layer, i) => {
-                    const config = CATEGORY_CONFIG[layer.category] || CATEGORY_CONFIG.Foundation;
-                    const f = freshness[layer.layerId] || { lastRefined: null, refinementCount: 0 };
-                    const fresh = getFreshnessLabel(f.lastRefined);
-
-                    return (
-                        <motion.div
-                            key={layer.layerId}
-                            initial={{ opacity: 0, y: 8 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: i * 0.03 }}
+            {/* Submit Refinement button — visible when at least 1 calibrated */}
+            <AnimatePresence>
+                {calibratedInSession.size > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                    >
+                        <button
+                            onClick={handleSubmitRefinement}
+                            disabled={submitLoading}
+                            className="w-full py-3 rounded-xl bg-gradient-to-r from-osia-teal-500 to-purple-500 text-white text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50"
                         >
-                            <Card
-                                className="p-3.5 border-white/5 bg-white/[0.02] hover:bg-white/[0.04] hover:border-osia-teal-500/15 transition-all cursor-pointer"
-                                onClick={() => startCalibration(layer)}
-                            >
-                                <div className="flex items-start justify-between mb-2">
-                                    <div className="flex items-center gap-2">
-                                        <div className={`w-6 h-6 rounded-md ${config.bg} flex items-center justify-center ${config.color}`}>
-                                            {config.icon}
-                                        </div>
-                                        <div>
-                                            <h4 className="text-xs font-bold text-white">{layer.layerName}</h4>
-                                            <span className="text-[8px] text-white/20">{layer.category}</span>
-                                        </div>
-                                    </div>
-                                    <span className={`text-[7px] font-black uppercase tracking-wider ${fresh.color}`}>{fresh.label}</span>
-                                </div>
+                            {submitLoading ? (
+                                <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Submitting...</>
+                            ) : (
+                                <><Send className="w-3.5 h-3.5" /> Submit Refinement ({calibratedInSession.size} layers)</>
+                            )}
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-                                {/* Score bar */}
-                                <div className="flex items-center gap-2">
-                                    <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full rounded-full bg-gradient-to-r from-osia-teal-500 to-purple-500"
-                                            style={{ width: `${layer.score * 100}%` }}
-                                        />
+            {/* Uncalibrated cards */}
+            {uncalibratedLayers.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {uncalibratedLayers.map((layer, i) => {
+                        const config = CATEGORY_CONFIG[layer.category] || CATEGORY_CONFIG.Foundation;
+                        const f = freshness[layer.layerId] || { lastRefined: null, refinementCount: 0 };
+                        const fresh = getFreshnessLabel(f.lastRefined);
+
+                        return (
+                            <motion.div
+                                key={layer.layerId}
+                                initial={{ opacity: 0, y: 8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.03 }}
+                            >
+                                <Card
+                                    className="p-3.5 border-white/5 bg-white/[0.02] hover:bg-white/[0.04] hover:border-osia-teal-500/15 transition-all cursor-pointer"
+                                    onClick={() => startCalibration(layer)}
+                                >
+                                    <div className="flex items-start justify-between mb-2">
+                                        <div className="flex items-center gap-2">
+                                            <div className={`w-6 h-6 rounded-md ${config.bg} flex items-center justify-center ${config.color}`}>
+                                                {config.icon}
+                                            </div>
+                                            <div>
+                                                <h4 className="text-xs font-bold text-white">{layer.layerName}</h4>
+                                                <span className="text-[8px] text-white/20">{layer.category}</span>
+                                            </div>
+                                        </div>
+                                        <span className={`text-[7px] font-black uppercase tracking-wider ${fresh.color}`}>{fresh.label}</span>
                                     </div>
-                                    <span className="text-[9px] font-bold text-osia-teal-400">{(layer.score * 100).toFixed(0)}%</span>
-                                </div>
-                            </Card>
-                        </motion.div>
-                    );
-                })}
-            </div>
+
+                                    {/* Score bar */}
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full rounded-full bg-gradient-to-r from-osia-teal-500 to-purple-500"
+                                                style={{ width: `${layer.score * 100}%` }}
+                                            />
+                                        </div>
+                                        <span className="text-[9px] font-bold text-osia-teal-400">{(layer.score * 100).toFixed(0)}%</span>
+                                    </div>
+                                </Card>
+                            </motion.div>
+                        );
+                    })}
+                </div>
+            )}
+
+            {/* Calibrated cards — completed this session */}
+            {calibratedLayers.length > 0 && (
+                <>
+                    <div className="flex items-center gap-2 pt-2">
+                        <CheckCircle className="w-3 h-3 text-green-400/50" />
+                        <span className="text-[9px] text-white/25 font-bold uppercase tracking-widest">Calibrated This Session</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {calibratedLayers.map((layer) => {
+                            const config = CATEGORY_CONFIG[layer.category] || CATEGORY_CONFIG.Foundation;
+
+                            return (
+                                <motion.div key={layer.layerId} layout>
+                                    <Card className="p-3.5 border-green-500/10 bg-green-500/[0.03] relative overflow-hidden">
+                                        <div className="absolute top-2 right-2">
+                                            <CheckCircle className="w-4 h-4 text-green-400/50" />
+                                        </div>
+                                        <div className="flex items-center gap-2 mb-2 opacity-60">
+                                            <div className={`w-6 h-6 rounded-md ${config.bg} flex items-center justify-center ${config.color}`}>
+                                                {config.icon}
+                                            </div>
+                                            <div>
+                                                <h4 className="text-xs font-bold text-white">{layer.layerName}</h4>
+                                                <span className="text-[8px] text-white/20">{layer.category}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 opacity-60">
+                                            <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full rounded-full bg-gradient-to-r from-green-500 to-osia-teal-500"
+                                                    style={{ width: `${layer.score * 100}%` }}
+                                                />
+                                            </div>
+                                            <span className="text-[9px] font-bold text-green-400">{(layer.score * 100).toFixed(0)}%</span>
+                                        </div>
+                                    </Card>
+                                </motion.div>
+                            );
+                        })}
+                    </div>
+                </>
+            )}
         </div>
     );
 }

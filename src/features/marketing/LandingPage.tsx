@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { PlexusBackground } from '../../components/viz/PlexusBackground';
-import { Layers, Brain, MessageSquare, Shield, Eye, Sparkles, ArrowRight, ChevronDown } from 'lucide-react';
+import { Layers, Brain, MessageSquare, Shield, Eye, Sparkles, ArrowRight, ChevronDown, Menu, X } from 'lucide-react';
 
 export function LandingPage() {
     const [email, setEmail] = useState('');
     const [joined, setJoined] = useState(false);
     const [loading, setLoading] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 40);
@@ -44,7 +45,7 @@ export function LandingPage() {
         initial: { opacity: 0, y: 30 },
         whileInView: { opacity: 1, y: 0 },
         viewport: { once: true, margin: '-60px' },
-        transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] }
+        transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }
     };
 
     return (
@@ -52,25 +53,77 @@ export function LandingPage() {
             <PlexusBackground />
 
             {/* ── Header ─────────────────────────────────────────── */}
-            <header className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-10 py-5 transition-all duration-500 ${scrolled ? 'backdrop-blur-xl bg-osia-deep-900/80 border-b border-white/5 shadow-2xl' : ''}`}>
+            <header className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-10 py-4 transition-all duration-500 ${scrolled ? 'backdrop-blur-xl bg-osia-deep-900/80 border-b border-white/5 shadow-2xl' : ''}`}>
+                {/* Logo */}
                 <div className="flex items-center gap-2">
                     <img src="/logo.png" alt="OSIA" className="h-5 w-auto" />
                 </div>
+
+                {/* Desktop Navigation */}
                 <nav className="hidden md:flex items-center gap-8 text-[10px] font-bold uppercase tracking-[0.2em] text-osia-neutral-500">
-                    <a href="#how-it-works" className="hover:text-osia-teal-500 transition-colors">How it works</a>
-                    <a href="#principles" className="hover:text-osia-teal-500 transition-colors">Principles</a>
+                    <a href="#how-it-works" className="hover:text-osia-teal-500 transition-colors">What is OSIA</a>
                     <a href="#founding-circle" className="hover:text-osia-teal-500 transition-colors">Founding Circle</a>
                 </nav>
-                <div className="flex items-center gap-3">
+
+                {/* Desktop CTAs */}
+                <div className="hidden md:flex items-center gap-3">
                     <Button
                         onClick={() => window.location.href = '/login'}
                         variant="secondary"
-                        className="px-5 py-2 text-[10px] uppercase font-bold tracking-widest"
+                        className="px-5 py-2 text-[10px] uppercase font-bold tracking-widest border-white/10 hover:border-white/20"
                     >
-                        Log in
+                        Sign In
                     </Button>
+                    <button
+                        onClick={() => window.location.href = '/signup'}
+                        className="px-5 py-2 rounded-lg bg-gradient-to-r from-osia-teal-500 to-purple-500 text-white text-[10px] uppercase font-bold tracking-widest hover:opacity-90 transition-opacity"
+                    >
+                        Sign Up
+                    </button>
                 </div>
+
+                {/* Mobile Menu Button */}
+                <button
+                    className="md:hidden p-2 text-white/50 hover:text-white/80 transition-colors"
+                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                >
+                    {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                </button>
             </header>
+
+            {/* Mobile Navigation Drawer */}
+            <AnimatePresence>
+                {mobileMenuOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="fixed top-[60px] left-0 right-0 z-40 backdrop-blur-xl bg-osia-deep-900/95 border-b border-white/5 px-6 py-6 space-y-4 md:hidden"
+                    >
+                        <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-bold text-white/60 hover:text-osia-teal-400 transition-colors py-2">
+                            What is OSIA
+                        </a>
+                        <a href="#founding-circle" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-bold text-white/60 hover:text-osia-teal-400 transition-colors py-2">
+                            Founding Circle
+                        </a>
+                        <div className="border-t border-white/5 pt-4 space-y-3">
+                            <button
+                                onClick={() => window.location.href = '/login'}
+                                className="w-full py-2.5 rounded-lg border border-white/10 text-white/60 text-xs font-bold uppercase tracking-widest hover:text-white/80 transition-all"
+                            >
+                                Sign In
+                            </button>
+                            <button
+                                onClick={() => window.location.href = '/signup'}
+                                className="w-full py-2.5 rounded-lg bg-gradient-to-r from-osia-teal-500 to-purple-500 text-white text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-opacity"
+                            >
+                                Sign Up
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <main className="relative z-10 pt-28">
                 {/* ── Hero Section ─────────────────────────────────── */}
