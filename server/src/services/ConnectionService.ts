@@ -104,10 +104,33 @@ export class ConnectionService {
         const isNeo4jHealthy = await neo4jService.isHealthy();
         if (!isNeo4jHealthy) {
             console.log(`[ConnectionService] Neo4j is DOWN. Using Virtual Graph fallback.`);
+
+            // Duplicate prevention: check existing connections
+            const simConnections = await db.getCollection<any>('sim_connections') || [];
+            const alreadyConnected = simConnections.some((c: any) =>
+                (c.userA === fromUserId && c.userB === toUserId) ||
+                (c.userA === toUserId && c.userB === fromUserId)
+            );
+            if (alreadyConnected) {
+                console.warn(`[ConnectionService] Already connected (virtual): ${fromUserId} <-> ${toUserId}`);
+                throw new Error('Already connected');
+            }
+
+            // Duplicate prevention: check pending requests in both directions
+            const simRequests = await db.getCollection<any>('sim_connection_requests') || [];
+            const pendingExists = simRequests.some((r: any) =>
+                r.status === 'PENDING' && (
+                    (r.fromUserId === fromUserId && r.toUserId === toUserId) ||
+                    (r.fromUserId === toUserId && r.toUserId === fromUserId)
+                )
+            );
+            if (pendingExists) {
+                console.warn(`[ConnectionService] Pending request already exists (virtual): ${fromUserId} <-> ${toUserId}`);
+                throw new Error('Connection request already pending');
+            }
+
             const requestId = `sim_req_${randomUUID()}`;
             const timestamp = new Date().toISOString();
-
-            const simRequests = await db.getCollection<any>('sim_connection_requests') || [];
             simRequests.push({ requestId, fromUserId, toUserId, type, status: 'PENDING', timestamp });
             await db.saveCollection('sim_connection_requests', simRequests);
 

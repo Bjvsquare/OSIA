@@ -72,12 +72,10 @@ router.post('/', authMiddleware, upload.single('screenshot'), async (req, res) =
         const { userService } = require('../services/UserService');
         const user = await userService.getProfile(authUser.id);
 
-        // Allow founding members OR admins to submit feedback
-        const canSubmit =
-            user.isFoundingMember === true ||
-            user.accessTier === 'founding' ||
-            user.subscriptionTier === 'founding' ||
-            user.isAdmin === true;
+        // Beta: Allow ALL authenticated users to submit feedback
+        // (Previously restricted to founding members only)
+        // const canSubmit = user.isFoundingMember || user.isAdmin;
+        const canSubmit = true;
 
         if (!canSubmit) {
             return res.status(403).json({ error: 'Feedback submission is available for Founding Circle members only' });

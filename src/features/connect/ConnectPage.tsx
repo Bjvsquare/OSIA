@@ -42,7 +42,7 @@ export function ConnectPage() {
     const { data: connectionsRaw = [] } = useQuery({
         queryKey: ['connections'],
         queryFn: async () => {
-            const res = await axios.get('/api/connect/connections', {
+            const res = await axios.get('/api/connect/list', {
                 headers: { 'Authorization': `Bearer ${auth.token}` }
             });
             return res.data;

@@ -166,7 +166,8 @@ export class FoundingCircleService {
             throw new Error('Member already approved or activated');
         }
 
-        const accessCode = this.generateAccessCode();
+        // Reuse existing code if one was generated at join time; only generate new if empty
+        const accessCode = member.access_code || this.generateAccessCode();
 
         const { data: updated, error } = await supabase
             .from('founding_circle')
