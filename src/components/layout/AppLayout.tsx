@@ -47,7 +47,7 @@ export function AppLayout() {
         { name: 'Insights', path: '/thesis', icon: Sparkles, tourId: 'nav-insights', matchPaths: ['/thesis', '/patterns'] },
         { name: 'Connect', path: '/connect', icon: Share2, tourId: 'nav-connect', matchPaths: ['/connect'] },
         { name: 'Circles', path: '/teams', icon: Users, tourId: 'nav-circles', matchPaths: ['/teams', '/team', '/organizations', '/organization'] },
-        { name: 'Practice', path: '/protocols', icon: RefreshCw, tourId: 'nav-practice', matchPaths: ['/protocols', '/refinement'] },
+        { name: 'Practice', path: '/practice', icon: RefreshCw, tourId: 'nav-practice', matchPaths: ['/practice'] },
         { name: 'Journey', path: '/journey', icon: Zap, tourId: 'nav-journey', matchPaths: ['/journey', '/history', '/readiness'] },
     ];
 

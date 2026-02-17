@@ -31,7 +31,8 @@ class OSIAAuditLogger {
         };
 
         try {
-            const events = await db.getCollection<AuditEvent>(this.collectionName);
+            let events = await db.getCollection<AuditEvent>(this.collectionName);
+            if (!Array.isArray(events)) events = [];
             events.push(event);
             await db.saveCollection(this.collectionName, events);
 

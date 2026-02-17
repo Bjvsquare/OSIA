@@ -23,6 +23,7 @@ import { FocusGateModal } from './features/auth/FocusGateModal';
 import { AccountTypeSelector } from './features/auth/AccountTypeSelector';
 import { Scene } from './components/canvas/Scene';
 import { FoundingCircleLanding } from './features/founding/FoundingCircleLanding';
+import { PracticeHubPage } from './features/practice/PracticeHubPage';
 import { TwinHome } from './features/home/TwinHome';
 import { LayerDetail } from './features/layers/LayerDetail';
 import { CheckInPage } from './features/checkin/CheckInPage';
@@ -37,8 +38,6 @@ import { ProDashboardPage } from './features/pro/ProDashboardPage';
 import { EnterpriseAdminPage } from './features/enterprise/EnterpriseAdminPage';
 import { DeveloperPortalPage } from './features/developer/DeveloperPortalPage';
 import { PatternsPage } from './features/patterns/PatternsPage';
-import { ProtocolsPage } from './features/protocols/ProtocolsPage';
-import { BlueprintRefinementPage } from './features/refinement/BlueprintRefinementPage';
 import { PricingPage } from './features/subscription/PricingPage';
 import { SubscriptionManagement } from './features/subscription/SubscriptionManagement';
 import { CheckoutSimulationPage } from './features/subscription/CheckoutSimulationPage';
@@ -163,8 +162,6 @@ function App() {
                   <Route path="/thesis" element={<ThesisPage />} />
                   <Route path="/insights" element={<InsightsHubPage />} />
                   <Route path="/connectors" element={<ConnectorsPage />} />
-                  <Route path="/protocols" element={<ProtocolsPage />} />
-                  <Route path="/refinement" element={<BlueprintRefinementPage />} />
                   <Route path="/layer/:layerId" element={<LayerDetail />} />
                   <Route path="/checkin" element={<CheckInPage />} />
                   <Route path="/history" element={<TimelinePage />} />
@@ -175,6 +172,7 @@ function App() {
                   <Route path="/connect/shared-view" element={<SharedViewPage />} />
                   <Route path="/privacy" element={<PrivacyDashboard />} />
                   <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/practice" element={<PracticeHubPage />} />
                   <Route path="/subscription" element={<SubscriptionManagement />} />
 
                   {/* Teams & Collective */}

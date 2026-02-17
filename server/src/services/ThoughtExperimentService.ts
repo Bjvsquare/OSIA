@@ -124,6 +124,149 @@ const QUESTION_TEMPLATES: Record<string, { type: 'mirror' | 'edge' | 'depth'; te
 const REFINEMENT_RATE = 0.04;   // Slightly gentler than protocol recalibration (0.05)
 const CONFIDENCE_BOOST = 0.015; // Each refinement increases confidence
 
+// ────────────────────────────────────────────────────────────────────────────
+// Calibration templates — structured, click-based interactions
+// ────────────────────────────────────────────────────────────────────────────
+
+const CALIBRATION_TEMPLATES: Record<string, { type: string; statement: string; options: { label: string; emoji?: string }[] }[]> = {
+    Foundation: [
+        {
+            type: 'agreement', statement: 'Your digital twin sees your {layer} as: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            type: 'scenario', statement: 'When solving a new problem, you tend to...', options: [
+                { label: 'Plan methodically before acting', emoji: '📋' }, { label: 'Jump in and figure it out', emoji: '⚡' },
+            ]
+        },
+        {
+            type: 'frequency', statement: 'How often do you feel grounded and centred in your daily life?', options: [
+                { label: 'Always', emoji: '◆' }, { label: 'Often', emoji: '◇' }, { label: 'Sometimes', emoji: '○' }, { label: 'Rarely', emoji: '◌' }, { label: 'Never', emoji: '·' },
+            ]
+        },
+    ],
+    Cognitive: [
+        {
+            type: 'agreement', statement: 'Your cognitive method is described as: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            type: 'scenario', statement: 'Before making an important decision, you first...', options: [
+                { label: 'Analyse the data thoroughly', emoji: '📊' }, { label: 'Trust your intuition', emoji: '💡' },
+            ]
+        },
+        {
+            type: 'frequency', statement: 'How often do you change your mind after sleeping on a decision?', options: [
+                { label: 'Always', emoji: '◆' }, { label: 'Often', emoji: '◇' }, { label: 'Sometimes', emoji: '○' }, { label: 'Rarely', emoji: '◌' }, { label: 'Never', emoji: '·' },
+            ]
+        },
+    ],
+    Expression: [
+        {
+            type: 'agreement', statement: 'Your creative expression profile is: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            type: 'scenario', statement: 'You do your best work when you have...', options: [
+                { label: 'Clear structure and deadlines', emoji: '📋' }, { label: 'Total creative freedom', emoji: '🎨' },
+            ]
+        },
+        {
+            type: 'frequency', statement: 'How often do you take creative risks in your work or life?', options: [
+                { label: 'Always', emoji: '◆' }, { label: 'Often', emoji: '◇' }, { label: 'Sometimes', emoji: '○' }, { label: 'Rarely', emoji: '◌' }, { label: 'Never', emoji: '·' },
+            ]
+        },
+    ],
+    Relational: [
+        {
+            type: 'agreement', statement: 'Your relational stance reads: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            type: 'scenario', statement: 'When conflict arises, your instinct is to...', options: [
+                { label: 'Address it directly', emoji: '🗣️' }, { label: 'Give it space first', emoji: '🤝' },
+            ]
+        },
+        {
+            type: 'frequency', statement: 'How often do you initiate deep conversations with people close to you?', options: [
+                { label: 'Always', emoji: '◆' }, { label: 'Often', emoji: '◇' }, { label: 'Sometimes', emoji: '○' }, { label: 'Rarely', emoji: '◌' }, { label: 'Never', emoji: '·' },
+            ]
+        },
+    ],
+    Structural: [
+        {
+            type: 'agreement', statement: 'Your structural focus is described as: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            type: 'scenario', statement: 'You are currently in a phase of...', options: [
+                { label: 'Expanding and exploring', emoji: '🌱' }, { label: 'Consolidating and refining', emoji: '🔧' },
+            ]
+        },
+        {
+            type: 'frequency', statement: 'How often do you redesign your systems, routines, or workflows?', options: [
+                { label: 'Always', emoji: '◆' }, { label: 'Often', emoji: '◇' }, { label: 'Sometimes', emoji: '○' }, { label: 'Rarely', emoji: '◌' }, { label: 'Never', emoji: '·' },
+            ]
+        },
+    ],
+    Social: [
+        {
+            type: 'agreement', statement: 'Your social resonance is described as: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            type: 'scenario', statement: 'In a room of strangers, your default mode is to...', options: [
+                { label: 'Engage and connect', emoji: '🤗' }, { label: 'Observe and assess', emoji: '👁' },
+            ]
+        },
+        {
+            type: 'frequency', statement: 'How often do you naturally lead conversations in group settings?', options: [
+                { label: 'Always', emoji: '◆' }, { label: 'Often', emoji: '◇' }, { label: 'Sometimes', emoji: '○' }, { label: 'Rarely', emoji: '◌' }, { label: 'Never', emoji: '·' },
+            ]
+        },
+    ],
+    Integration: [
+        {
+            type: 'agreement', statement: 'Your integrative depth is described as: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            type: 'scenario', statement: 'When multiple priorities compete, you tend to...', options: [
+                { label: 'Focus deeply on one', emoji: '🎯' }, { label: 'Balance across several', emoji: '⚖️' },
+            ]
+        },
+        {
+            type: 'frequency', statement: 'How often do different parts of your life feel aligned and coherent?', options: [
+                { label: 'Always', emoji: '◆' }, { label: 'Often', emoji: '◇' }, { label: 'Sometimes', emoji: '○' }, { label: 'Rarely', emoji: '◌' }, { label: 'Never', emoji: '·' },
+            ]
+        },
+    ],
+    Evolution: [
+        {
+            type: 'agreement', statement: 'Your evolutionary trajectory is described as: "{description}"', options: [
+                { label: 'Exactly right', emoji: '🎯' }, { label: 'Mostly right', emoji: '✓' }, { label: 'Somewhat', emoji: '~' }, { label: 'Not really', emoji: '✗' }, { label: 'Not at all', emoji: '⊘' },
+            ]
+        },
+        {
+            type: 'scenario', statement: 'Right now, you are focused more on...', options: [
+                { label: 'Becoming someone new', emoji: '🚀' }, { label: 'Deepening who you are', emoji: '🌳' },
+            ]
+        },
+        {
+            type: 'frequency', statement: 'How often do you feel you are evolving as a person?', options: [
+                { label: 'Always', emoji: '◆' }, { label: 'Often', emoji: '◇' }, { label: 'Sometimes', emoji: '○' }, { label: 'Rarely', emoji: '◌' }, { label: 'Never', emoji: '·' },
+            ]
+        },
+    ],
+};
+
 export class ThoughtExperimentService {
 
     /**
@@ -404,6 +547,209 @@ export class ThoughtExperimentService {
         const engagementMultiplier = Math.min(2.0, words / 25);
 
         return direction * REFINEMENT_RATE * engagementMultiplier;
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // CLICK-BASED CALIBRATION SYSTEM
+    // ────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Generate a structured calibration card for a layer.
+     * Returns one of 3 types: agreement, scenario, or frequency.
+     * Each has pre-defined tappable options with deterministic adjustments.
+     */
+    async generateCalibration(userId: string, layerId: number): Promise<any> {
+        const meta = LAYER_META[layerId];
+        if (!meta) throw new Error(`Invalid layer ID: ${layerId}`);
+
+        const snapshots = await db.getCollection<any>('blueprint_snapshots');
+        const userSnapshots = snapshots.filter(s => s.userId === userId);
+        const latest = userSnapshots.sort((a, b) =>
+            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        )[0];
+
+        if (!latest?.traits) throw new Error('No blueprint data found.');
+
+        const trait = latest.traits.find((t: any) => t.layerId === layerId);
+        if (!trait) throw new Error(`No trait data for layer ${layerId}.`);
+
+        const description = trait.description
+            ? trait.description.split('\n\n')[0].substring(0, 150)
+            : meta.name;
+
+        // Pick calibration type based on confidence + recent history
+        const recent = await db.getCollection<any>('calibration_responses');
+        const recentForLayer = recent
+            .filter((r: any) => r.userId === userId && r.layerId === layerId)
+            .sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+            .slice(0, 3);
+        const recentTypes = recentForLayer.map((r: any) => r.calibrationType);
+
+        // Rotate through types, prefer agreement for low confidence
+        let calType: 'agreement' | 'scenario' | 'frequency';
+        if (trait.confidence < 0.5 && !recentTypes.includes('agreement')) {
+            calType = 'agreement';
+        } else if (!recentTypes.includes('scenario')) {
+            calType = 'scenario';
+        } else if (!recentTypes.includes('frequency')) {
+            calType = 'frequency';
+        } else {
+            calType = (['agreement', 'scenario', 'frequency'] as const)[Math.floor(Math.random() * 3)];
+        }
+
+        const card = this.buildCalibrationCard(calType, meta, trait, description);
+
+        const calibration = {
+            id: `cal_${randomUUID().slice(0, 12)}`,
+            userId,
+            layerId,
+            traitId: meta.key,
+            traitLabel: meta.name,
+            category: meta.category,
+            currentScore: trait.score,
+            currentConfidence: trait.confidence,
+            ...card,
+            timestamp: new Date().toISOString(),
+        };
+
+        const calibrations = await db.getCollection<any>('calibrations');
+        calibrations.push(calibration);
+        await db.saveCollection('calibrations', calibrations);
+
+        return calibration;
+    }
+
+    /**
+     * Process a structured calibration response.
+     * selectedOption is the index (0-4 for agreement/frequency, 0-1 for scenario).
+     */
+    async processCalibration(userId: string, calibrationId: string, selectedOption: number): Promise<RefinementResult> {
+        const calibrations = await db.getCollection<any>('calibrations');
+        const cal = calibrations.find((c: any) => c.id === calibrationId && c.userId === userId);
+        if (!cal) throw new Error('Calibration not found.');
+
+        const adjustment = this.calculateStructuredAdjustment(cal.type, selectedOption);
+
+        // Apply to blueprint
+        const snapshots = await db.getCollection<any>('blueprint_snapshots');
+        const userSnapshots = snapshots.filter((s: any) => s.userId === userId);
+        const latest = userSnapshots.sort((a: any, b: any) =>
+            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        )[0];
+        if (!latest) throw new Error('No blueprint snapshot found.');
+
+        const previousTrait = latest.traits.find((t: any) => t.layerId === cal.layerId);
+        const previousScore = previousTrait?.score || 0.5;
+
+        const newTraits = latest.traits.map((t: any) => {
+            if (t.layerId === cal.layerId) {
+                return {
+                    ...t,
+                    score: Math.max(0.01, Math.min(0.99, t.score + adjustment)),
+                    confidence: Math.min(0.99, t.confidence + CONFIDENCE_BOOST * 1.5),
+                };
+            }
+            return t;
+        });
+
+        const newSnapshot = {
+            id: `sn_${randomUUID()}`,
+            userId,
+            timestamp: new Date().toISOString(),
+            source: 'calibration',
+            traits: newTraits,
+        };
+        snapshots.push(newSnapshot);
+        await db.saveCollection('blueprint_snapshots', snapshots);
+
+        // Record response
+        const responses = await db.getCollection<any>('calibration_responses');
+        responses.push({
+            id: `cr_${randomUUID().slice(0, 12)}`,
+            userId,
+            calibrationId,
+            layerId: cal.layerId,
+            calibrationType: cal.type,
+            selectedOption,
+            adjustment,
+            snapshotId: newSnapshot.id,
+            timestamp: new Date().toISOString(),
+        });
+        await db.saveCollection('calibration_responses', responses);
+
+        // Also record in refinement_responses for freshness tracking
+        const refResponses = await db.getCollection<any>('refinement_responses');
+        refResponses.push({
+            id: `rr_${randomUUID().slice(0, 12)}`,
+            userId,
+            experimentId: calibrationId,
+            layerId: cal.layerId,
+            answer: `[calibration:${cal.type}:option_${selectedOption}]`,
+            adjustment,
+            snapshotId: newSnapshot.id,
+            timestamp: new Date().toISOString(),
+        });
+        await db.saveCollection('refinement_responses', refResponses);
+
+        const newScore = Math.max(0.01, Math.min(0.99, previousScore + adjustment));
+
+        return {
+            success: true,
+            layerId: cal.layerId,
+            traitId: cal.traitId,
+            previousScore,
+            newScore,
+            adjustment,
+            direction: adjustment > 0.005 ? 'strengthened' : adjustment < -0.005 ? 'softened' : 'stable',
+            snapshotId: newSnapshot.id,
+        };
+    }
+
+    /**
+     * Deterministic adjustment mapping — no heuristics, no keyword matching.
+     */
+    private calculateStructuredAdjustment(type: string, selectedOption: number): number {
+        const ADJUSTMENTS: Record<string, number[]> = {
+            agreement: [+0.06, +0.03, 0, -0.03, -0.06],
+            scenario: [+0.04, -0.04],
+            frequency: [+0.05, +0.03, 0, -0.03, -0.05],
+        };
+        const map = ADJUSTMENTS[type];
+        if (!map || selectedOption < 0 || selectedOption >= map.length) return 0;
+        return map[selectedOption];
+    }
+
+    /**
+     * Build a calibration card with statement, options, and context.
+     */
+    private buildCalibrationCard(
+        type: 'agreement' | 'scenario' | 'frequency',
+        meta: { name: string; key: string; category: string },
+        trait: any,
+        description: string
+    ): any {
+        const templates = CALIBRATION_TEMPLATES[meta.category] || CALIBRATION_TEMPLATES['Foundation'];
+        const pool = templates.filter(t => t.type === type);
+        const template = pool[Math.floor(Math.random() * pool.length)] || pool[0] || templates[0];
+
+        const hydrated = {
+            ...template,
+            statement: template.statement
+                .replace(/{description}/g, description)
+                .replace(/{score}/g, (trait.score * 100).toFixed(0) + '%')
+                .replace(/{layer}/g, meta.name),
+        };
+
+        if (type === 'scenario' && hydrated.options) {
+            hydrated.options = hydrated.options.map((o: any) => ({
+                ...o,
+                label: o.label
+                    .replace(/{description}/g, description)
+                    .replace(/{layer}/g, meta.name),
+            }));
+        }
+
+        return hydrated;
     }
 }
 

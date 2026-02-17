@@ -821,6 +821,31 @@ export const api = {
         return response.json();
     },
 
+    async getCalibrationCard(layerId: number): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const response = await fetch(`/api/refinement/calibrate/${layerId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Failed to get calibration card');
+        return response.json();
+    },
+
+    async submitCalibration(calibrationId: string, selectedOption: number): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const response = await fetch('/api/refinement/calibrate', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ calibrationId, selectedOption })
+        });
+        if (!response.ok) throw new Error('Failed to submit calibration');
+        return response.json();
+    },
+
     async getRefinementHistory(limit: number = 20): Promise<any[]> {
         const authData = localStorage.getItem('OSIA_auth');
         const token = authData ? JSON.parse(authData).token : null;
@@ -1242,6 +1267,96 @@ export const api = {
         return response.json();
     },
 
+    // ── Practice (Behavioral Activation) ─────────────────────────────
+
+    async getValues(): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const response = await fetch('/api/practice/values', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Failed to fetch values');
+        return response.json();
+    },
+
+    async saveValues(values: any[]): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const response = await fetch('/api/practice/values', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ values })
+        });
+        if (!response.ok) throw new Error('Failed to save values');
+        return response.json();
+    },
+
+    async getPracticeNudges(): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const response = await fetch('/api/practice/nudges', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Failed to fetch practice nudges');
+        return response.json();
+    },
+
+    async createPracticeNudge(data: { valueId: string; title: string; description: string; frequency: string; context: string }): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const response = await fetch('/api/practice/nudges', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) throw new Error('Failed to create practice nudge');
+        return response.json();
+    },
+
+    async updatePracticeNudge(nudgeId: string, updates: any): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const response = await fetch(`/api/practice/nudges/${nudgeId}`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates)
+        });
+        if (!response.ok) throw new Error('Failed to update practice nudge');
+        return response.json();
+    },
+
+    async completePracticeNudge(nudgeId: string, reflection?: string): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const response = await fetch(`/api/practice/nudges/${nudgeId}/complete`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reflection })
+        });
+        if (!response.ok) throw new Error('Failed to complete practice nudge');
+        return response.json();
+    },
+
+    async getPracticeLog(limit: number = 30): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const response = await fetch(`/api/practice/log?limit=${limit}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Failed to fetch practice log');
+        return response.json();
+    },
+
+    async getPracticeSummary(): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const response = await fetch('/api/practice/summary', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Failed to fetch practice summary');
+        return response.json();
+    },
+
     // ── Feedback ─────────────────────────────────────────────────────
 
     async submitFeedback(formData: FormData): Promise<Response> {
@@ -1288,27 +1403,9 @@ export const api = {
 
     // ── Organization Culture ─────────────────────────────────────────
 
-    async getOrgCulture(orgId: string): Promise<any> {
-        const authData = localStorage.getItem('OSIA_auth');
-        const token = authData ? JSON.parse(authData).token : null;
-        const res = await fetch(`/api/organizations/${orgId}/culture`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (!res.ok) {
-            const err = await res.json().catch(() => ({ error: 'Failed to fetch culture data' }));
-            throw new Error(err.error || 'Failed to fetch culture data');
-        }
-        return res.json();
-    },
 
-    async analyzeOrgCulture(orgId: string): Promise<Response> {
-        const authData = localStorage.getItem('OSIA_auth');
-        const token = authData ? JSON.parse(authData).token : null;
-        return fetch(`/api/organizations/${orgId}/culture/analyze`, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
-        });
-    },
+
+
 
     // ── Subscription Management ──────────────────────────────────────
 

@@ -112,6 +112,9 @@ import evolutionRoutes from './routes/evolutionRoutes';
 import refinementRoutes from './routes/refinementRoutes';
 import kycRoutes from './routes/kycRoutes';
 import lifeAreaRoutes from './routes/lifeAreaRoutes';
+import practiceRoutes from './routes/practiceRoutes';
+import notificationRoutes from './routes/notificationRoutes';
+import { pushNotificationService } from './services/PushNotificationService';
 
 app.use('/api/auth', authRoutes);
 
@@ -137,6 +140,11 @@ app.use('/api/feedback', feedbackRoutes);
 app.use('/api/refinement', refinementRoutes);
 app.use('/api/kyc', kycRoutes);
 app.use('/api/life-areas', lifeAreaRoutes);
+app.use('/api/practice', practiceRoutes);
+app.use('/api/notifications', notificationRoutes);
+
+// Start push notification scheduler
+pushNotificationService.startScheduler();
 
 // In production, serve the built frontend
 if (process.env.NODE_ENV === 'production') {

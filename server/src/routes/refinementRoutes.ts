@@ -105,4 +105,55 @@ router.get('/history', authMiddleware, async (req: any, res: any) => {
     }
 });
 
+// ============================================================================
+// GET CALIBRATION CARD FOR A LAYER (CLICK-BASED)
+// ============================================================================
+
+router.get('/calibrate/:layerId', authMiddleware, async (req: any, res: any) => {
+    try {
+        const userId = req.user.id || req.user.userId;
+        const layerId = parseInt(req.params.layerId);
+
+        if (isNaN(layerId) || layerId < 1 || layerId > 15) {
+            return res.status(400).json({ error: 'Layer ID must be between 1 and 15.' });
+        }
+
+        const calibration = await thoughtExperimentService.generateCalibration(userId, layerId);
+        res.json(calibration);
+    } catch (error: any) {
+        console.error('[Refinement] Generate calibration error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ============================================================================
+// SUBMIT CALIBRATION RESPONSE (CLICK-BASED) + AUTO-CASCADE
+// ============================================================================
+
+router.post('/calibrate', authMiddleware, async (req: any, res: any) => {
+    try {
+        const userId = req.user.id || req.user.userId;
+        const { calibrationId, selectedOption } = req.body;
+
+        if (!calibrationId || selectedOption === undefined) {
+            return res.status(400).json({ error: 'calibrationId and selectedOption are required.' });
+        }
+
+        const result = await thoughtExperimentService.processCalibration(userId, calibrationId, selectedOption);
+
+        // Auto-cascade after every calibration
+        let cascadeResult = null;
+        try {
+            cascadeResult = await snapshotCascadeService.cascadeUpdate(userId);
+        } catch (cascadeErr) {
+            console.error('[Refinement] Auto-cascade failed (non-blocking):', cascadeErr);
+        }
+
+        res.json({ ...result, cascade: cascadeResult });
+    } catch (error: any) {
+        console.error('[Refinement] Submit calibration error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 export default router;
