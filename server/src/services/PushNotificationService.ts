@@ -216,6 +216,77 @@ class PushNotificationService {
             console.error('[PushNotification] Scheduler check error:', err);
         }
     }
+
+    // ━━━ Nudge Schedule Management ━━━
+
+    /**
+     * Get the nudge schedule for a user
+     */
+    async getNudgeSchedule(userId: string): Promise<any> {
+        try {
+            const nudges = await db.getCollection<any>('practice_nudges') || [];
+            const userNudge = nudges.find((n: any) => n.userId === userId && n.isActive);
+            return userNudge || null;
+        } catch (err) {
+            console.error('[PushNotification] getNudgeSchedule error:', err);
+            return null;
+        }
+    }
+
+    /**
+     * Save or update a nudge schedule for a user
+     */
+    async saveNudgeSchedule(userId: string, notifyAt: string, label?: string): Promise<any> {
+        try {
+            let nudges = await db.getCollection<any>('practice_nudges') || [];
+            if (!Array.isArray(nudges)) nudges = [];
+
+            // Find existing nudge for this user
+            const existingIndex = nudges.findIndex((n: any) => n.userId === userId);
+            const nudgeEntry = {
+                id: existingIndex >= 0 ? nudges[existingIndex].id : `nudge_${userId}_${Date.now()}`,
+                userId,
+                title: label || 'Daily Practice Nudge',
+                notifyAt,
+                isActive: true,
+                createdAt: existingIndex >= 0 ? nudges[existingIndex].createdAt : new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            };
+
+            if (existingIndex >= 0) {
+                nudges[existingIndex] = nudgeEntry;
+            } else {
+                nudges.push(nudgeEntry);
+            }
+
+            await db.saveCollection('practice_nudges', nudges);
+            console.log(`[PushNotification] Nudge schedule saved: ${userId} at ${notifyAt}`);
+            return nudgeEntry;
+        } catch (err) {
+            console.error('[PushNotification] saveNudgeSchedule error:', err);
+            throw err;
+        }
+    }
+
+    /**
+     * Remove/deactivate a nudge schedule for a user
+     */
+    async removeNudgeSchedule(userId: string): Promise<void> {
+        try {
+            let nudges = await db.getCollection<any>('practice_nudges') || [];
+            if (!Array.isArray(nudges)) nudges = [];
+
+            nudges = nudges.map((n: any) =>
+                n.userId === userId ? { ...n, isActive: false, updatedAt: new Date().toISOString() } : n
+            );
+
+            await db.saveCollection('practice_nudges', nudges);
+            console.log(`[PushNotification] Nudge schedule removed for: ${userId}`);
+        } catch (err) {
+            console.error('[PushNotification] removeNudgeSchedule error:', err);
+            throw err;
+        }
+    }
 }
 
 export const pushNotificationService = new PushNotificationService();

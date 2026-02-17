@@ -4,7 +4,7 @@ import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { PlexusBackground } from '../../components/viz/PlexusBackground';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Bell, User, ShieldCheck, Lock, Smartphone, RefreshCw, Camera, Check, X, CreditCard, Play, Building2 } from 'lucide-react';
+import { Bell, User, ShieldCheck, Lock, Smartphone, Camera, Check, X, CreditCard, Play, Building2 } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
 import { useAuth } from '../auth/AuthContext';
 import { api } from '../../services/api';
@@ -53,6 +53,12 @@ export function SettingsPage() {
         if (activeTab === 'profile') {
             fetchMemberships();
         }
+        if (activeTab === 'notifications') {
+            // Fetch nudge schedule
+            api.getNudgeSchedule().then(data => {
+                if (data?.schedule?.notifyAt) setNudgeTime(data.schedule.notifyAt);
+            }).catch(() => { });
+        }
     }, [activeTab]);
 
     const fetchMemberships = async () => {
@@ -79,6 +85,8 @@ export function SettingsPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [editName, setEditName] = useState('');
+    const [nudgeTime, setNudgeTime] = useState('');
+    const [nudgeSaving, setNudgeSaving] = useState(false);
 
     const handle2FASetup = async () => {
         setIsLoading(true);
@@ -653,7 +661,7 @@ export function SettingsPage() {
 
                             {activeTab === 'notifications' && (
                                 <motion.div
-                                    key="pending"
+                                    key="notifications"
                                     initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -20 }}
@@ -695,14 +703,112 @@ export function SettingsPage() {
                                         </div>
                                     </Card>
 
-                                    <Card className="p-20 flex flex-col items-center justify-center text-center space-y-6 backdrop-blur-xl">
-                                        <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-osia-neutral-600 shadow-inner">
-                                            <RefreshCw size={32} className="animate-spin duration-[4s]" />
+                                    {/* Nudge Time Picker */}
+                                    <div className="space-y-2">
+                                        <h2 className="text-2xl font-bold text-white tracking-tight">Daily Nudge</h2>
+                                        <p className="text-sm text-osia-neutral-400">Choose a time for your daily practice reminder.</p>
+                                    </div>
+
+                                    <Card className="p-8 border-white/5 bg-[#0a1128]/40 space-y-8 backdrop-blur-xl">
+                                        <div className="flex items-center gap-6">
+                                            <div className="w-12 h-12 rounded-2xl bg-osia-teal-500/10 flex items-center justify-center text-osia-teal-400">
+                                                <Bell size={24} />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <div className="text-sm font-bold text-white">Evening Practice Nudge</div>
+                                                <p className="text-xs text-osia-neutral-500">
+                                                    {nudgeTime ? `Scheduled for ${nudgeTime}` : 'No nudge scheduled — pick a time below'}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div className="space-y-2">
-                                            <h3 className="text-xl font-bold text-white">Notification Preferences</h3>
-                                            <p className="text-sm text-osia-neutral-500 max-w-sm">We are standardising these preferences based on your Founding Circle profile.</p>
+
+                                        {/* Evening Presets */}
+                                        <div className="space-y-3">
+                                            <div className="text-[10px] font-black uppercase tracking-widest text-osia-neutral-600">Quick Select</div>
+                                            <div className="grid grid-cols-4 gap-3">
+                                                {[
+                                                    { time: '18:00', label: '6 PM' },
+                                                    { time: '19:00', label: '7 PM' },
+                                                    { time: '20:00', label: '8 PM' },
+                                                    { time: '21:00', label: '9 PM' },
+                                                ].map(preset => (
+                                                    <button
+                                                        key={preset.time}
+                                                        onClick={async () => {
+                                                            setNudgeTime(preset.time);
+                                                            setNudgeSaving(true);
+                                                            try {
+                                                                await api.saveNudgeSchedule(preset.time);
+                                                                showToast(`Nudge set for ${preset.label}`, 'success');
+                                                            } catch { showToast('Failed to save', 'error'); }
+                                                            finally { setNudgeSaving(false); }
+                                                        }}
+                                                        disabled={nudgeSaving}
+                                                        className={`p-4 rounded-xl border text-center transition-all ${nudgeTime === preset.time
+                                                            ? 'bg-osia-teal-500/15 border-osia-teal-500 ring-1 ring-osia-teal-500 text-osia-teal-400 shadow-[0_0_20px_rgba(45,212,191,0.15)]'
+                                                            : 'bg-white/5 border-white/5 text-white hover:bg-white/10 hover:border-white/10'
+                                                            }`}
+                                                    >
+                                                        <div className="text-lg font-bold">{preset.label}</div>
+                                                        <div className="text-[9px] text-osia-neutral-500 uppercase tracking-wider mt-1">Evening</div>
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
+
+                                        {/* Exact Time Input */}
+                                        <div className="space-y-3">
+                                            <div className="text-[10px] font-black uppercase tracking-widest text-osia-neutral-600">Exact Time</div>
+                                            <div className="flex items-center gap-4">
+                                                <input
+                                                    type="time"
+                                                    value={nudgeTime || ''}
+                                                    onChange={(e) => setNudgeTime(e.target.value)}
+                                                    className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-lg font-mono focus:outline-none focus:border-osia-teal-500/50 [color-scheme:dark]"
+                                                />
+                                                <Button
+                                                    variant="primary"
+                                                    className="text-[10px] uppercase font-bold px-6"
+                                                    disabled={nudgeSaving || !nudgeTime}
+                                                    onClick={async () => {
+                                                        if (!nudgeTime) return;
+                                                        setNudgeSaving(true);
+                                                        try {
+                                                            await api.saveNudgeSchedule(nudgeTime);
+                                                            const [h, m] = nudgeTime.split(':');
+                                                            const hr = parseInt(h);
+                                                            const ampm = hr >= 12 ? 'PM' : 'AM';
+                                                            const hr12 = hr % 12 || 12;
+                                                            showToast(`Nudge set for ${hr12}:${m} ${ampm}`, 'success');
+                                                        } catch { showToast('Failed to save', 'error'); }
+                                                        finally { setNudgeSaving(false); }
+                                                    }}
+                                                >
+                                                    {nudgeSaving ? 'Saving...' : 'Set Time'}
+                                                </Button>
+                                            </div>
+                                        </div>
+
+                                        {/* Disable Nudge */}
+                                        {nudgeTime && (
+                                            <div className="pt-2 border-t border-white/5">
+                                                <button
+                                                    className="text-xs text-osia-neutral-500 hover:text-red-400 transition-colors"
+                                                    onClick={async () => {
+                                                        setNudgeSaving(true);
+                                                        try {
+                                                            await api.removeNudgeSchedule();
+                                                            setNudgeTime('');
+                                                            showToast('Nudge disabled', 'info');
+                                                        } catch { showToast('Failed to remove', 'error'); }
+                                                        finally { setNudgeSaving(false); }
+                                                    }}
+                                                    disabled={nudgeSaving}
+                                                >
+                                                    Disable daily nudge
+                                                </button>
+                                            </div>
+                                        )}
                                     </Card>
                                 </motion.div>
                             )}

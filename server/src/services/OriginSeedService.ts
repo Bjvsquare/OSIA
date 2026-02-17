@@ -23,7 +23,7 @@ export class OriginSeedService {
         });
 
         // 3. Translate Pattern to 15-Layer Model (The Translation Layer)
-        const traits = this.translateBlueprintToTraits(blueprint, userId);
+        const traits = await this.translateBlueprintToTraits(blueprint, userId);
 
         // 4. Persist the Narrative Snapshot (The Derived Reflection)
         await blueprintService.createSnapshot(userId, traits, 'foundational_blueprint', signalId);
@@ -70,7 +70,7 @@ export class OriginSeedService {
         }
 
         // 2. Generate the 15 traits dynamically (Iteration 0)
-        return this.translateBlueprintToTraits(blueprint, userId);
+        return await this.translateBlueprintToTraits(blueprint, userId);
     }
 
     async refineHypothesis(userId: string, layerId: number, iteration: number): Promise<TraitProbability> {
@@ -158,33 +158,52 @@ export class OriginSeedService {
     };
 
     // The Logic that maps origin signals to the 15-Layer Intelligence Model
-    private translateBlueprintToTraits(blueprint: Blueprint, userId: string): TraitProbability[] {
+    private async translateBlueprintToTraits(blueprint: Blueprint, userId: string): Promise<TraitProbability[]> {
         const traits: TraitProbability[] = [];
 
-        // Generate the 15 traits using the Narrative Synthesizer
-        const usedHashes = new Set<string>();
+        // Generate the 15 traits using AI-powered Narrative Synthesizer
         for (let i = 1; i <= 15; i++) {
-            const { narrative, profile } = narrativeSynthesizer.synthesizeNarrative(i, blueprint, userId, usedHashes);
+            try {
+                const { narrative } = await narrativeSynthesizer.synthesizeWithAI(i, blueprint, userId, 0);
 
-            // Evidence-Based Scoring: Driven by signal density
-            // High score = Many aspects to primary body + High sector concentration
-            const primaryPlanetName = this.getPlanetNameForLayer(i);
-            const aspects = blueprint.aspects.filter(a => a.planet1 === primaryPlanetName || a.planet2 === primaryPlanetName);
-            const planet = blueprint.planets.find(p => p.name === primaryPlanetName);
+                // Evidence-Based Scoring: Driven by signal density
+                const primaryPlanetName = this.getPlanetNameForLayer(i);
+                const aspects = blueprint.aspects.filter(a => a.planet1 === primaryPlanetName || a.planet2 === primaryPlanetName);
+                const planet = blueprint.planets.find(p => p.name === primaryPlanetName);
 
-            const aspectWeight = Math.min(0.25, aspects.length * 0.05); // Balanced impact: 5% per aspect, cap at 25%
-            const houseWeight = planet ? (blueprint.houses.distribution[`h${planet.house}`] || 0) * 0.35 : 0; // House concentration impact
+                const aspectWeight = Math.min(0.25, aspects.length * 0.05);
+                const houseWeight = planet ? (blueprint.houses.distribution[`h${planet.house}`] || 0) * 0.35 : 0;
 
-            const baseScore = 0.45; // Start at a realistic baseline
-            const score = Math.min(0.95, baseScore + aspectWeight + houseWeight);
+                const baseScore = 0.45;
+                const score = Math.min(0.95, baseScore + aspectWeight + houseWeight);
 
-            traits.push({
-                layerId: i,
-                traitId: `L${i.toString().padStart(2, '0')}_${OriginSeedService.LAYER_KEYS[i]}`,
-                score: parseFloat(score.toFixed(3)),
-                confidence: 0.95,
-                description: narrative
-            });
+                traits.push({
+                    layerId: i,
+                    traitId: `L${i.toString().padStart(2, '0')}_${OriginSeedService.LAYER_KEYS[i]}`,
+                    score: parseFloat(score.toFixed(3)),
+                    confidence: 0.95,
+                    description: narrative
+                });
+            } catch (err) {
+                console.error(`[OriginSeed] AI synthesis failed for layer ${i}, using rule-based:`, err);
+                const usedHashes = new Set<string>();
+                const { narrative } = narrativeSynthesizer.synthesizeNarrative(i, blueprint, userId, usedHashes);
+
+                const primaryPlanetName = this.getPlanetNameForLayer(i);
+                const aspects = blueprint.aspects.filter(a => a.planet1 === primaryPlanetName || a.planet2 === primaryPlanetName);
+                const planet = blueprint.planets.find(p => p.name === primaryPlanetName);
+                const aspectWeight = Math.min(0.25, aspects.length * 0.05);
+                const houseWeight = planet ? (blueprint.houses.distribution[`h${planet.house}`] || 0) * 0.35 : 0;
+                const score = Math.min(0.95, 0.45 + aspectWeight + houseWeight);
+
+                traits.push({
+                    layerId: i,
+                    traitId: `L${i.toString().padStart(2, '0')}_${OriginSeedService.LAYER_KEYS[i]}`,
+                    score: parseFloat(score.toFixed(3)),
+                    confidence: 0.95,
+                    description: narrative
+                });
+            }
         }
 
         return traits;

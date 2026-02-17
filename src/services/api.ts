@@ -1467,5 +1467,40 @@ export const api = {
             throw new Error(err.error || 'Failed to open billing portal');
         }
         return res.json();
+    },
+
+    // ━━━ Nudge Schedule ━━━
+
+    async getNudgeSchedule(): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const res = await fetch('/api/notifications/schedule', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) return null;
+        return res.json();
+    },
+
+    async saveNudgeSchedule(notifyAt: string, label?: string): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const res = await fetch('/api/notifications/schedule', {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ notifyAt, label })
+        });
+        if (!res.ok) throw new Error('Failed to save nudge schedule');
+        return res.json();
+    },
+
+    async removeNudgeSchedule(): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const res = await fetch('/api/notifications/schedule', {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Failed to remove nudge schedule');
+        return res.json();
     }
 };
