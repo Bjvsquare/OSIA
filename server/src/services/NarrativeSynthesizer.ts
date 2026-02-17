@@ -1,4 +1,5 @@
 import { Blueprint, PlanetPosition } from './AstrologyService';
+import { db } from '../db/JsonDb';
 
 interface PsychologicalProfile {
     archetype: string;
@@ -176,6 +177,115 @@ export class NarrativeSynthesizer {
                 focus: "Presence"
             }
         };
+    }
+
+    /**
+     * AI-Powered Narrative Synthesis via Claude
+     * Generates unique, contextual hypotheses that feel personal rather than templated.
+     * Falls back to rule-based generation if Claude fails.
+     */
+    public async synthesizeWithAI(
+        layerId: number,
+        blueprint: Blueprint,
+        userId: string = 'unknown',
+        iteration: number = 0
+    ): Promise<{ narrative: string, profile: PsychologicalProfile }> {
+        // Check cache first
+        const cacheKey = `${userId}-L${layerId}-i${iteration}`;
+        try {
+            const cache = await db.getCollection<any>('ai_narrative_cache') || [];
+            const cached = cache.find((c: any) => c.key === cacheKey);
+            if (cached) {
+                console.log(`[NarrativeSynthesizer] Cache HIT: ${cacheKey}`);
+                return cached.result;
+            }
+        } catch (e) {
+            // Cache miss, continue
+        }
+
+        // Check if Anthropic API key is available
+        const apiKey = process.env.ANTHROPIC_API_KEY;
+        if (!apiKey) {
+            console.log('[NarrativeSynthesizer] No ANTHROPIC_API_KEY, falling back to rule-based');
+            return this.synthesizeNarrative(layerId, blueprint, userId, new Set(), iteration);
+        }
+
+        try {
+            const Anthropic = (await import('@anthropic-ai/sdk')).default;
+            const client = new Anthropic({ apiKey });
+
+            const primaryPlanet = this.getPlanetForLayer(layerId, blueprint);
+            if (!primaryPlanet) {
+                return this.synthesizeNarrative(layerId, blueprint, userId, new Set(), iteration);
+            }
+
+            const element = this.getElement(primaryPlanet.sign);
+            const modality = this.getModality(primaryPlanet.sign);
+            const layerContext = this.getLayerContext(layerId);
+            const aspects = this.getAspectsForPlanet(primaryPlanet.name, blueprint);
+            const tensionCount = aspects.filter(a => ['Square', 'Opposition'].includes(a.type)).length;
+            const flowCount = aspects.filter(a => ['Trine', 'Sextile'].includes(a.type)).length;
+
+            const prompt = `You are a psychological profile writer for a personality intelligence platform called OSIA. You generate deeply personal, insightful personality hypotheses based on behavioral pattern data.
+
+IMPORTANT RULES:
+- NEVER use astrological terms (planets, signs, houses, zodiac, horoscope, etc.)
+- NEVER use spiritual/mystical language (soul, karma, destiny, vibration, energy, etc.)
+- Write in second person ("you"), conversational but thoughtful tone
+- Be specific and psychologically grounded
+- Each paragraph should feel unique and personally relevant
+- Total length: 3 short paragraphs (opening stance, anchor insight, closing presence)
+
+CONTEXT:
+- Layer ${layerId} of 15: This layer relates to ${layerContext}
+- Core element: ${element} (${this.elementDescriptors[element]?.join(', ')})
+- Mode: ${modality} (${this.modalityDescriptors[modality]?.join(', ')})
+- Domain focus: ${this.domainDescriptors[primaryPlanet.house]?.join(', ') || 'general processing'}
+- Tension signals: ${tensionCount} (indicating internal friction/growth edges)
+- Flow signals: ${flowCount} (indicating natural ease/strengths)
+- Iteration: ${iteration} (${iteration === 0 ? 'initial assessment' : 'refined perspective — offer a deeper, more nuanced take'})
+
+Generate a 3-paragraph personality hypothesis for this layer. The first paragraph should describe how this person naturally operates in this domain. The second should describe the tensions or ease they experience. The third should describe how others experience them in this domain.`;
+
+            const response = await client.messages.create({
+                model: 'claude-3-5-haiku-latest',
+                max_tokens: 400,
+                messages: [{ role: 'user', content: prompt }]
+            });
+
+            const narrativeText = response.content
+                .filter((block: any) => block.type === 'text')
+                .map((block: any) => block.text)
+                .join('\n\n');
+
+            // Sanitize the AI output
+            const sanitized = this.sanitize(narrativeText);
+
+            const result = {
+                narrative: sanitized,
+                profile: {
+                    archetype: `${this.capitalize(element)} ${this.capitalize(modality)}`,
+                    drive: "Coherence",
+                    method: "Lived Experience",
+                    focus: "Presence"
+                }
+            };
+
+            // Cache the result
+            try {
+                const cache = await db.getCollection<any>('ai_narrative_cache') || [];
+                cache.push({ key: cacheKey, result, createdAt: new Date().toISOString() });
+                await db.saveCollection('ai_narrative_cache', cache);
+                console.log(`[NarrativeSynthesizer] Cached AI narrative: ${cacheKey}`);
+            } catch (e) {
+                // Non-critical, continue
+            }
+
+            return result;
+        } catch (err: any) {
+            console.error(`[NarrativeSynthesizer] AI synthesis failed, falling back to rule-based:`, err.message);
+            return this.synthesizeNarrative(layerId, blueprint, userId, new Set(), iteration);
+        }
     }
 
     private generateStance(layerId: number, element: string, modality: string, house: number, rng: () => number, buffer: Set<string>, context: string): string {

@@ -30,7 +30,8 @@ export function RequestModal({ isOpen, onClose, onSubmit, targetUsername }: Requ
         { id: 'Work', label: 'Work', desc: 'Professional collaboration & structured goals.' },
         { id: 'Friend', label: 'Friend', desc: 'Social connection & shared interests.' },
         { id: 'Family', label: 'Family', desc: 'Deep personal bond & kinship.' },
-        { id: 'Partner', label: 'Partner', desc: 'Intimate relationship & shared life path.' }
+        { id: 'Partner', label: 'Partner', desc: 'Intimate relationship & shared life path.' },
+        { id: 'Team', label: 'Team', desc: 'Group project or crew — shared mission & accountability.' }
     ];
 
     return (
@@ -59,8 +60,8 @@ export function RequestModal({ isOpen, onClose, onSubmit, targetUsername }: Requ
                                     key={type.id}
                                     onClick={() => setSelectedType(type.id)}
                                     className={`w-full text-left p-4 rounded-xl border transition-all ${selectedType === type.id
-                                            ? 'bg-osia-teal-500/10 border-osia-teal-500 ring-1 ring-osia-teal-500'
-                                            : 'bg-white/5 border-white/5 hover:bg-white/10'
+                                        ? 'bg-osia-teal-500/10 border-osia-teal-500 ring-1 ring-osia-teal-500'
+                                        : 'bg-white/5 border-white/5 hover:bg-white/10'
                                         }`}
                                 >
                                     <div className="flex items-center justify-between">

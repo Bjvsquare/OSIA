@@ -79,7 +79,8 @@ export class OriginSeedService {
         const blueprint = await blueprintService.getLatestSignal(userId);
         if (!blueprint) throw new Error("Signal lost.");
 
-        const { narrative } = narrativeSynthesizer.synthesizeNarrative(layerId, blueprint, userId, new Set(), iteration);
+        // Prefer AI synthesis when available, fall back to rule-based
+        const { narrative } = await narrativeSynthesizer.synthesizeWithAI(layerId, blueprint, userId, iteration);
 
         // Calculate score with same logic as initial
         const primaryPlanetName = this.getPlanetNameForLayer(layerId);
