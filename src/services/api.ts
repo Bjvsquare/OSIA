@@ -1152,6 +1152,74 @@ export const api = {
         return response.json();
     },
 
+    async getDevOpsContext(): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const response = await fetch('/api/admin/devops', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Failed to fetch DevOps context');
+        return response.json();
+    },
+
+    async updateDevOpsContext(content: string): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const response = await fetch('/api/admin/devops/context', {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content })
+        });
+        if (!response.ok) throw new Error('Failed to update DevOps context');
+        return response.json();
+    },
+
+    // --- Sync Board (DevOps Tasks) ---
+
+    async getDevOpsTasks(): Promise<any[]> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const response = await fetch('/api/admin/devops/tasks', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Failed to fetch tasks');
+        return response.json();
+    },
+
+    async createDevOpsTask(data: { title: string; description: string; assignee: string }): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const response = await fetch('/api/admin/devops/tasks', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) throw new Error('Failed to create task');
+        return response.json();
+    },
+
+    async updateDevOpsTask(id: string, updates: any): Promise<any> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const response = await fetch(`/api/admin/devops/tasks/${id}`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates)
+        });
+        if (!response.ok) throw new Error('Failed to update task');
+        return response.json();
+    },
+
+    async deleteDevOpsTask(id: string): Promise<void> {
+        const authData = localStorage.getItem('OSIA_auth');
+        const token = authData ? JSON.parse(authData).token : null;
+        const response = await fetch(`/api/admin/devops/tasks/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Failed to delete task');
+    },
+
     // ── KYC Verification (Admin) ─────────────────────────────────────
 
     async getKYCAdminQueue(): Promise<any> {

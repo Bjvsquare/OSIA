@@ -214,7 +214,7 @@ export function AppLayout() {
                 </div>
             )}
 
-            <main className="relative z-10 pt-24 px-6 min-h-screen">
+            <main className="relative pt-24 px-6 min-h-screen">
                 <div className="max-w-7xl mx-auto pb-12">
                     <Outlet />
                 </div>

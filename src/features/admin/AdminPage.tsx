@@ -23,11 +23,12 @@ import { FoundingCircle } from './components/FoundingCircle';
 import { FeedbackManagement } from './components/FeedbackManagement';
 import { PlatformPlanning } from './components/PlatformPlanning';
 import { KYCReviewPanel } from './components/KYCReviewPanel';
+import { CollaborationHub } from './components/CollaborationHub';
 import { useToast } from '../../components/ui/Toast';
 import { api } from '../../services/api';
 
 export function AdminPage() {
-    const [activeTab, setActiveTab] = useState<'users' | 'analytics' | 'errors' | 'interactions' | 'system' | 'founding' | 'feedback' | 'planning' | 'kyc'>('analytics');
+    const [activeTab, setActiveTab] = useState<'users' | 'analytics' | 'errors' | 'interactions' | 'system' | 'founding' | 'feedback' | 'planning' | 'kyc' | 'devops'>('analytics');
     const [analytics, setAnalytics] = useState<any>(null);
     const [unreadFeedbackCount, setUnreadFeedbackCount] = useState(0);
     const [pendingKYCCount, setPendingKYCCount] = useState(0);
@@ -75,6 +76,7 @@ export function AdminPage() {
     const tabs = [
         { id: 'analytics', label: 'Analytics', icon: BarChart3 },
         { id: 'kyc', label: 'KYC', icon: Shield },
+        { id: 'devops', label: 'DevOps', icon: Activity },
         { id: 'founding', label: 'Founding Circle', icon: Shield },
         { id: 'feedback', label: 'Feedback', icon: AlertCircle },
         { id: 'planning', label: 'Planning', icon: Activity },
@@ -162,6 +164,7 @@ export function AdminPage() {
                         {activeTab === 'founding' && <FoundingCircle />}
                         {activeTab === 'feedback' && <FeedbackManagement />}
                         {activeTab === 'planning' && <PlatformPlanning />}
+                        {activeTab === 'devops' && <CollaborationHub />}
                         {activeTab === 'interactions' && <Interactions />}
                         {activeTab === 'users' && <UserManagement />}
                         {activeTab === 'errors' && <ErrorLog />}
