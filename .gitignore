@@ -41,3 +41,7 @@ server/uploads/
 
 # OS files
 Thumbs.db
+
+# Google Antigravity / Gemini Agent
+.gemini/
+.antigravity/
