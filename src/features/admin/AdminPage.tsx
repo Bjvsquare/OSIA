@@ -76,7 +76,7 @@ export function AdminPage() {
     const tabs = [
         { id: 'analytics', label: 'Analytics', icon: BarChart3 },
         { id: 'kyc', label: 'KYC', icon: Shield },
-        { id: 'devops', label: 'DevOps', icon: Activity },
+        { id: 'devops', label: 'DevOps', icon: Activity }, // HMR Trigger
         { id: 'founding', label: 'Founding Circle', icon: Shield },
         { id: 'feedback', label: 'Feedback', icon: AlertCircle },
         { id: 'planning', label: 'Planning', icon: Activity },

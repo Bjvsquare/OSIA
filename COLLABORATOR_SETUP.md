@@ -78,40 +78,63 @@ npm run dev
 
 The app will be available at `http://localhost:5173` with the API at `http://localhost:3001`.
 
-## 7. Daily Workflow
+## 7. The Sync Board Workflow (Local & Staging)
 
-```bash
-# 1. Pull latest changes
-git pull origin develop
+We use the built-in **DevOps Sync Board** on the OSIA Admin panel to coordinate all features and mediate code reviews using a 3-Tier Pipeline.
 
-# 2. Create your feature branch
-git checkout -b feature/your-name-description
+### Environment Map
 
-# 3. Work in Antigravity (the AI agent will propose changes)
+| Sync Board State | GitHub Branch | Deployment Environment |
+| :--- | :--- | :--- |
+| **⚡ In Progress** | `feature/your-name` | **Local** (`localhost:5173`) |
+| **👀 In Review** | `develop` | **Staging** (Railway) |
+| **✅ Done** | `main` | **Production** (Railway) |
 
-# 4. Commit when done
-git add .
-git commit -m "feat: description of what you built"
+### Daily Feature Cycle:
+1. **Pull latest changes:** `git pull origin develop`
+2. **Start a Task:** Go to the OSIA Admin -> DevOps tab. Create a task and drag it to **In Progress** (mark as your Focus Point).
+3. **Branch off `develop`:** `git checkout -b feature/your-name-feature`
+4. **Code Locally:** Use Antigravity to build and test on `localhost:5173`.
+5. **Push to Staging:** When ready for review:
+   - Request the AI agent to: "Run the `/deploy-staging` workflow"
+   - Drag your task to **In Review** on the Sync Board.
+6. **Task Review:** The Reviewer clicks the live Staging Server URL to test the code. They open the **Task Review Modal** on the Sync Board and either:
+   - Upload screenshots/voice notes and click **Request Changes** (kicks task back to In Progress).
+   - Click **Approve & Sign-off** (marks task as Done).
 
-# 5. Push your branch
-git push origin feature/your-name-description
+## 8. Preventing Code Overwrites (Crucial!)
 
-# 6. Open a Pull Request on GitHub
-#    Base: develop ← Compare: feature/your-name-description
-```
+When you and Misha are coding at the exact same time, GitHub prevents you from accidentally deleting each other's work through a system called **Merge Conflicts**. 
 
-## 8. Important Rules
+If Misha pushes a change to the `develop` branch, and you try to push *your* changes 5 minutes later, GitHub will **BLOCK** your push. 
 
-- **Never push directly to `main`** — it auto-deploys to production on Railway.
-- **Always branch off `develop`**, not `main`.
-- **Update `CONTEXT.md`** when you start a new feature so Barend knows what you're working on.
-- **Pull before branching** to avoid merge conflicts.
-- If you get merge conflicts, resolve them in Antigravity — you can ask the AI agent to help explain the conflicting code.
+**Here is exactly how you handle it:**
+1. **Don't Panic:** GitHub blocking your push means the safety system is working!
+2. **Pull His Code First:** Before you can push, you must download Misha's new code and blend it into yours:
+   ```bash
+   git pull origin develop
+   ```
+3. **The Auto-Merge:** Most of the time, if you were working on the Dashboard and Misha was working on the Database, Git will automatically blend the code together seamlessly. 
+4. **The Merge Conflict:** If you *both* edited the exact same line in the exact same file, Git stops and says: *"Hey, you both changed this line. Which version should I keep?"*
+   - This is called a **Merge Conflict**.
+   - Antigravity will highlight the conflicting lines in your editor.
+   - **Ask the AI for help!** Tell Antigravity: *"I have a merge conflict after pulling `develop`, please help me resolve it without losing Misha's or my work."*
+5. **Push:** Once the conflict is resolved (or auto-merged), you can safely execute your `git push origin develop`.
 
-## 9. Deploying (Coordinated)
+## 9. AI Agent Directives (System Instructions)
 
-Only merge to `main` when both team members agree. See `.agent/workflows/deploy.md` for the full deploy process. In general:
+**To any Antigravity AI Agents reading this file:** 
+You are operating in a multi-agent, dual-developer environment. You MUST obey the following rules when assisting the user:
 
-1. Merge your feature branch → `develop` via PR
-2. Coordinate with Barend
-3. Merge `develop` → `main` to trigger Railway deploy
+1. **Never forcefully overwrite `develop` or `main`.** 
+2. If a `git push` fails because the remote contains work the user does not have locally, DO NOT use `--force`. Instead, execute `git pull origin <branch>`, diagnose any merge conflicts, and carefully propose conflict resolutions to the user that preserve BOTH developers' intentions.
+3. **Sync Board Awareness:** Do not start writing code for a feature unless the user verifies they have claimed an "In Progress" task on the DevOps Sync Board. This prevents both AI agents from unknowingly building the exact same feature at the same time.
+4. Always build features on a `feature/` branch. Never execute work directly on `main` or `develop`.
+
+## 10. Deploying to Production 
+
+Only deploy to production when a task has been formally Approved on the Sync Board.
+
+Ask the Antigravity AI to: **"Run the `/deploy` workflow"**.
+
+The AI will follow `.agent/workflows/deploy.md` to merge the reviewed `develop` branch into `main`, which instantly triggers the live Railway Production build.

@@ -4,7 +4,9 @@ description: Deploy changes to Railway production (update the platform)
 
 # Deploy to Production
 
-Follow these steps whenever the user says "update the platform", "deploy", or "push to live":
+Follow these steps whenever the user says "update the platform", "deploy", or "push to live".
+
+**IMPORTANT**: This workflow pushes the vetted code from Staging (`develop`) to the Live Production server (`main`). It should theoretically only be run after a task has been Approved on the DevOps Sync Board.
 
 ## 1. Build & Test Locally First
 
@@ -34,16 +36,16 @@ Review the staged files, then commit:
 git commit -m "<descriptive commit message>"
 ```
 
-## 3. Push to `develop` (Backup)
+## 3. Push Uncommitted Hotfixes to `develop` (Staging)
+
+If the user made local hotfixes instead of using a Staging review cycle, push them to `develop` first so they aren't lost.
 
 // turbo
 ```bash
 git push origin develop 2>&1
 ```
 
-This pushes to the backup branch WITHOUT affecting the live site.
-
-## 4. Merge to `main` and Deploy
+## 4. Merge `develop` to `main` (Production Auto-Deploy)
 
 ```bash
 git checkout main && git merge develop && git push origin main 2>&1
