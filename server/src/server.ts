@@ -1,81 +1,51 @@
-// Heartbeat: Triggering server reload to fix connectivity issues. (Attempt 3)
 import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
-import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
-import fs from 'fs';
 import path from 'path';
+import cookieParser from 'cookie-parser';
 
 dotenv.config();
 
 import { neo4jService } from './services/Neo4jService';
 import { supabaseService } from './services/SupabaseService';
+import { logger, logAppEvent, createRequestLogger } from './utils/logger';
+import { authLimiter, apiLimiter } from './middleware/securityMiddleware';
+
+// Route imports
 import teamRoutes from './routes/teamRoutes';
 import subscriptionRoutes from './routes/subscriptionRoutes';
 import webhookRoutes from './routes/webhookRoutes';
 import protocolRoutes from './routes/protocolRoutes';
 import journeyRoutes from './routes/journeyRoutes';
+import checkInRoutes from './routes/checkInRoutes';
 
 const app: Express = express();
 const PORT = Number(process.env.PORT) || 3001;
 
-// Robust Persistence & Crash Logging
-const LOG_FILE = path.join(process.cwd(), 'server-vital-signs.log');
-const logToDisk = (message: string) => {
-  try {
-    const logEntry = `[${new Date().toISOString()}] ${message}\n`;
-    fs.appendFileSync(LOG_FILE, logEntry);
-    console.log(message);
-  } catch (e) {
-    // Silence EPIPE or other terminal/disk errors to prevent server crash
-  }
-};
-
-logToDisk('--- Server Session Initialized ---');
+logAppEvent('Server session initialized', { PORT });
 
 // Middleware
 // 1. Core Config & CORS
 app.use(cors());
+app.use(cookieParser());
 
 // 2. Health check (Highest priority, NO body-parsing)
 app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// 3. Request Logging (Minimal delay)
-app.use((req: Request, res: Response, next: any) => {
-  const start = Date.now();
-  console.log(`[INCOMING] ${req.method} ${req.originalUrl}`);
-  res.on('finish', () => {
-    const duration = Date.now() - start;
-    const logMsg = `[REQ] ${req.method} ${req.originalUrl} - ${res.statusCode} (${duration}ms)`;
-    console.log(logMsg);
-    logToDisk(logMsg);
-  });
-  next();
-});
+// 3. Request Logging (Structured, async)
+app.use(createRequestLogger());
 
-// 4. Raw Routes (Stripe Webhooks)
+// 4. Raw Routes (Stripe Webhooks - before body parsing)
 app.use('/api/webhooks/stripe', webhookRoutes);
 
-// 5. Body Parsing (Narrow scoped to /api only)
-// This prevents global hangs on non-api routes like /health
-app.use('/api', (req, res, next) => {
-  if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
-    logToDisk(`[BP_TRACE] START parsing body for ${req.method} ${req.originalUrl}`);
-  }
-  next();
-});
-
+// 5. Body Parsing (Scoped to /api)
 app.use('/api', express.json({ limit: '10mb' }));
 app.use('/api', express.urlencoded({ extended: true, limit: '10mb' }));
 
-app.use('/api', (req, res, next) => {
-  if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
-    logToDisk(`[BP_TRACE] DONE parsing body for ${req.method} ${req.originalUrl}`);
-  }
-  next();
-});
+// 6. Security middleware on /api
+app.use('/api', apiLimiter);
 
 // 6. Static Files
 app.use('/uploads', express.static('uploads', {
@@ -92,10 +62,9 @@ app.use('/uploads', express.static('uploads', {
 // Body parsed routes follow below
 
 
-// Routes
+// Additional route imports
 import authRoutes from './routes/authRoutes';
 import originSeedRoutes from './routes/originSeedRoutes';
-
 import userRoutes from './routes/userRoutes';
 import adminRoutes from './routes/adminRoutes';
 import foundingCircleRoutes from './routes/foundingCircleRoutes';
@@ -117,9 +86,23 @@ import notificationRoutes from './routes/notificationRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
 import { pushNotificationService } from './services/PushNotificationService';
 
-app.use('/api/auth', authRoutes);
+// 7. Static Files (after body parsing)
+app.use('/uploads', express.static('uploads', {
+  setHeaders: (res) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+  }
+}));
 
+// 8. ROUTE REGISTRATION
+// Auth routes with rate limiting
+app.use('/api/auth', authLimiter, authRoutes);
 
+// Check-in routes (MVP - visual first)
+app.use('/api/check-ins', checkInRoutes);
+
+// All other existing routes
 app.use('/api/origin-seed', originSeedRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
@@ -165,89 +148,58 @@ if (process.env.NODE_ENV === 'production') {
 // app.use('/api/pro', requireSubscription('pro'), proRoutes);
 // app.use('/api/teams', requireSubscription('teams'), teamRoutes);
 
-// Gracefully handle errors
+// 9. Error Handling
 app.use((err: any, req: Request, res: Response, next: any) => {
-  console.error('[CRITICAL] Uncaught Express Error:', err);
+  logger.error({ error: err, path: req.path, method: req.method }, 'Uncaught Express error');
   res.status(500).json({
     error: 'Internal Server Error',
-    details: err.message || 'Check server logs'
+    message: process.env.NODE_ENV === 'development' ? err.message : 'An error occurred'
   });
 });
 
+// 10. Global error handlers
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-});
-
-process.on('uncaughtException', (err) => {
-  console.error('Uncaught Exception:', err);
-});
-
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Origin Seed Engine server running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`Binding: 0.0.0.0:${PORT}`);
-
-  // Verify DB connections and auto-setup admin in background
-  setTimeout(async () => {
-    console.log('[INFO] Starting background connectivity checks...');
-    neo4jService.verifyConnectivity().catch(err => console.error('[Neo4j] Background connectivity check failed:', err));
-    supabaseService.verifyConnectivity().catch(err => console.error('[Supabase] Background connectivity check failed:', err));
-
-    // Auto-promote first user to admin if no admin exists yet
-    try {
-      const db = require('./db/JsonDb').default;
-      const users = await db.getCollection('users');
-      if (Array.isArray(users) && users.length > 0) {
-        const hasAdmin = users.some((u: any) => u.isAdmin === true);
-        if (!hasAdmin) {
-          users[0].isAdmin = true;
-          await db.saveCollection('users', users);
-          logToDisk(`[Admin] Auto-promoted first user "${users[0].username}" to admin (no admin existed)`);
-        }
-      }
-    } catch (e: any) {
-      logToDisk(`[Admin] Auto-admin setup skipped: ${e.message}`);
-    }
-  }, 1000);
-});
-
-logToDisk('--- Server Session Initialized ---');
-
-process.on('unhandledRejection', (reason, promise) => {
-  logToDisk(`[FATAL] Unhandled Rejection at: ${promise} reason: ${reason}`);
+  logger.error({ reason, promise }, 'Unhandled rejection');
 });
 
 process.on('uncaughtException', (err: any) => {
   if (err.code === 'EPIPE') return; // Ignore broken pipes
-  logToDisk(`[FATAL] Uncaught Exception: ${err.message}\n${err.stack}`);
-  // Give disk log a chance before exiting
+  logger.fatal({ error: err }, 'Uncaught exception');
   setTimeout(() => process.exit(1), 100);
 });
 
-// Capture Termination Signals
+// 11. Start server
+const server = app.listen(PORT, '0.0.0.0', () => {
+  logAppEvent('Server started', {
+    port: PORT,
+    environment: process.env.NODE_ENV || 'development',
+    node_version: process.version
+  });
+
+  // Verify DB connections
+  setTimeout(async () => {
+    try {
+      const neo4jHealthy = await neo4jService.verifyConnectivity();
+      const supabaseHealthy = await supabaseService.verifyConnectivity();
+      logAppEvent('Database health check completed', {
+        neo4j: neo4jHealthy,
+        supabase: supabaseHealthy
+      });
+    } catch (err) {
+      logger.error({ err }, 'Database health check failed');
+    }
+  }, 1000);
+});
+
+// 12. Graceful shutdown
 ['SIGINT', 'SIGTERM', 'SIGQUIT'].forEach(signal => {
   process.on(signal, () => {
-    logToDisk(`[SIGNAL] Received ${signal}. Shutting down gracefully...`);
+    logAppEvent(`Received ${signal}, shutting down gracefully`);
     server.close(() => {
-      logToDisk('[INFO] Server closed. Process exiting.');
+      logAppEvent('Server closed, process exiting');
       process.exit(0);
     });
   });
 });
-
-// Keep process alive aggressively + KYC deadline checks
-setInterval(async () => {
-  logToDisk('[LIFE] Heartbeat: Server process is active.');
-  // KYC deadline enforcement
-  try {
-    const { kycService } = require('./services/KYCService');
-    const result = await kycService.checkDeadlines();
-    if (result.locked.length > 0 || result.lockedFinal.length > 0) {
-      logToDisk(`[KYC] Deadline check: ${result.locked.length} locked, ${result.lockedFinal.length} permanently locked`);
-    }
-  } catch (e: any) {
-    logToDisk(`[KYC] Deadline check error: ${e.message}`);
-  }
-}, 1000 * 60 * 15); // Every 15 minutes
 
 export default app;
