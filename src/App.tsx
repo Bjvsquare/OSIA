@@ -11,6 +11,8 @@ import { FeedbackButton } from './features/feedback/FeedbackButton';
 import { OnboardingFlow } from './features/onboarding/OnboardingFlow';
 import { VoiceTestPage } from './features/onboarding/components/VoiceTestPage';
 import { RealtimeMinimal } from './features/onboarding/components/RealtimeMinimal';
+import { VisualWelcomeScreen } from './features/onboarding/components/VisualWelcomeScreen';
+import { EmotionPickerFlow } from './features/onboarding/components/emotion-picker/EmotionPickerFlow';
 import { LoginPage } from './features/auth/LoginPage';
 import { SignupPage } from './features/auth/SignupPage';
 import { SharedViewPage } from './features/connect/SharedViewPage';
@@ -144,9 +146,16 @@ function App() {
                 <Route path="/checkout/simulation" element={<CheckoutSimulationPage />} />
                 <Route path="/" element={<FoundingCircleLanding />} />
 
-                {/* Onboarding Flow - Gated by OnboardingGuard */}
+                {/* Visual Onboarding Flow (MVP) - No AppLayout, full screen */}
+                <Route element={<OnboardingGuard />}>
+                  <Route path="/welcome" element={<VisualWelcomeScreen />} />
+                  <Route path="/onboarding/emotion/level1" element={<EmotionPickerFlow />} />
+                  <Route path="/onboarding/emotion/level2" element={<EmotionPickerFlow />} />
+                  <Route path="/onboarding/emotion/level3" element={<EmotionPickerFlow />} />
+                </Route>
+
+                {/* Legacy Onboarding Flow - Gated by OnboardingGuard */}
                 <Route element={<OnboardingGuard><AppLayout /></OnboardingGuard>}>
-                  <Route path="/welcome" element={<OnboardingFlow />} />
                   <Route path="/onboarding" element={<OnboardingFlow />} />
                   <Route path="/onboarding/q/:questionId" element={<OnboardingFlow />} />
                   <Route path="/insight/first" element={<OnboardingFlow />} />
