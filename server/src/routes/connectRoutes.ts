@@ -4,10 +4,7 @@ import { synastryService } from '../services/SynastryService';
 import { insightNotificationService } from '../services/InsightNotificationService';
 import { auditLogger } from '../services/AuditLogger';
 import { authMiddleware } from '../middleware/authMiddleware';
-import fs from 'fs';
-import path from 'path';
-
-console.log(`[ConnectRoute] LOADER: connectRoutes.ts initializing at ${new Date().toISOString()}`);
+import { logger, logAuthEvent } from '../utils/logger';
 
 const router = express.Router();
 
@@ -23,31 +20,13 @@ router.get('/search', authMiddleware, async (req: any, res: any) => {
             return res.status(400).json({ error: 'Query parameter q is required' });
         }
 
-        console.log(`[ConnectRoute] Search: user=${req.user.username} (${currentUserId}), q="${query}"`);
+        logAuthEvent('connect_search', currentUserId, { query });
 
-        try {
-            const results = await connectionService.searchUsers(query, currentUserId);
-            res.json(results);
-        } catch (dbError: any) {
-            console.error('[ConnectRoute] DB Search Failed:', dbError);
-            const logPath = 'C:\\Users\\baren\\.gemini\\antigravity\\brain\\da2b10d5-940d-425e-afb1-dc98e64919c2\\server_db_error.log';
-            fs.appendFileSync(logPath, `[DB ERROR] ${dbError.message}\n${dbError.stack}\n`);
-            throw dbError; // Re-throw to main handler
-        }
+        const results = await connectionService.searchUsers(query, currentUserId);
+        res.json(results);
     } catch (error: any) {
-        console.error('Search error:', error);
-
-        try {
-            console.error('Full stack:', error.stack);
-            // LOG TO ARTIFACT DIR - ABSOLUTE PATH
-            const logPath = 'C:\\Users\\baren\\.gemini\\antigravity\\brain\\da2b10d5-940d-425e-afb1-dc98e649192\\server_debug.log';
-            const logContent = `[${new Date().toISOString()}] SEARCH ERROR:\nDir: ${__dirname}\nUser: ${JSON.stringify(req.user)}\nQuery: ${req.query?.q}\nError: ${error.message}\n${error.stack}\n\n`;
-            fs.appendFileSync(logPath, logContent);
-        } catch (logErr) {
-            console.error('Failed to write to error log:', logErr);
-        }
-
-        res.status(500).json({ error: error.message, stack: error.stack });
+        logger.error({ error, userId: (req as any).user?.id, query: req.query?.q }, 'Connect search failed');
+        res.status(500).json({ error: 'Search failed', message: error.message });
     }
 });
 
@@ -61,8 +40,8 @@ router.get('/list', authMiddleware, async (req: any, res: any) => {
         const connections = await connectionService.getConnections(currentUserId);
         res.json(connections);
     } catch (error: any) {
-        console.error('Connection list error:', error);
-        res.status(500).json({ error: error.message });
+        logger.error({ error, userId: (req as any).user?.id }, 'Connection list failed');
+        res.status(500).json({ error: 'Failed to fetch connections' });
     }
 });
 
@@ -76,8 +55,8 @@ router.get('/requests', authMiddleware, async (req: any, res: any) => {
         const requests = await connectionService.getPendingRequests(currentUserId);
         res.json(requests);
     } catch (error: any) {
-        console.error('Requests fetch error:', error);
-        res.status(500).json({ error: error.message });
+        logger.error({ error, userId: (req as any).user?.id }, 'Get pending requests failed');
+        res.status(500).json({ error: 'Failed to fetch requests' });
     }
 });
 
@@ -93,7 +72,7 @@ router.get('/synastry/:targetUserId', authMiddleware, async (req: any, res: any)
         const result = await synastryService.calculateSynastry(currentUserId, targetUserId);
         res.json(result);
     } catch (error: any) {
-        console.error('Synastry calculation error:', error);
+        logger.error({ error, userId: (req as any).user?.id }, 'Synastry calculation error:');
         res.status(500).json({ error: error.message });
     }
 });
@@ -123,7 +102,7 @@ router.post('/request', authMiddleware, async (req: any, res: any) => {
 
         res.json({ message: 'Request sent successfully', requestId });
     } catch (error: any) {
-        console.error('Send request error:', error);
+        logger.error({ error, userId: (req as any).user?.id }, 'Send request error:');
         res.status(500).json({ error: error.message });
     }
 });
@@ -149,7 +128,7 @@ router.delete('/remove/:targetUserId', authMiddleware, async (req: any, res: any
 
         res.json({ message: 'Connection removed successfully' });
     } catch (error: any) {
-        console.error('Remove connection error:', error);
+        logger.error({ error, userId: (req as any).user?.id }, 'Remove connection error:');
         res.status(500).json({ error: error.message });
     }
 });
@@ -179,7 +158,7 @@ router.post('/respond', authMiddleware, async (req: any, res: any) => {
 
         res.json({ message: `Request ${action}ed successfully` });
     } catch (error: any) {
-        console.error('Respond request error:', error);
+        logger.error({ error, userId: (req as any).user?.id }, 'Respond request error:');
         res.status(500).json({ error: error.message });
     }
 });
@@ -214,7 +193,7 @@ router.post('/share-insight', authMiddleware, async (req: any, res: any) => {
 
         res.json({ message: 'Insight shared successfully', notification });
     } catch (error: any) {
-        console.error('Share insight error:', error);
+        logger.error({ error, userId: (req as any).user?.id }, 'Share insight error:');
         res.status(500).json({ error: error.message });
     }
 });
@@ -230,7 +209,7 @@ router.get('/shared-insights', authMiddleware, async (req: any, res: any) => {
         const unreadCount = await insightNotificationService.getUnreadCount(userId);
         res.json({ insights, unreadCount });
     } catch (error: any) {
-        console.error('Get shared insights error:', error);
+        logger.error({ error, userId: (req as any).user?.id }, 'Get shared insights error:');
         res.status(500).json({ error: error.message });
     }
 });
@@ -246,7 +225,7 @@ router.patch('/shared-insights/:id/read', authMiddleware, async (req: any, res: 
         await insightNotificationService.markAsRead(notificationId, userId);
         res.json({ message: 'Marked as read' });
     } catch (error: any) {
-        console.error('Mark insight read error:', error);
+        logger.error({ error, userId: (req as any).user?.id }, 'Mark insight read error:');
         res.status(500).json({ error: error.message });
     }
 });
@@ -285,7 +264,7 @@ router.post('/propose-type-change', authMiddleware, async (req: any, res: any) =
 
         res.json({ message: 'Type change proposed', requestId });
     } catch (error: any) {
-        console.error('Propose type change error:', error);
+        logger.error({ error, userId: (req as any).user?.id }, 'Propose type change error:');
         res.status(500).json({ error: error.message });
     }
 });
@@ -301,7 +280,7 @@ router.get('/type-change-requests', authMiddleware, async (req: any, res: any) =
         const all = await connectionService.getAllTypeChangeRequests(userId);
         res.json({ pending, all });
     } catch (error: any) {
-        console.error('Get type change requests error:', error);
+        logger.error({ error, userId: (req as any).user?.id }, 'Get type change requests error:');
         res.status(500).json({ error: error.message });
     }
 });
@@ -331,7 +310,7 @@ router.post('/respond-type-change', authMiddleware, async (req: any, res: any) =
 
         res.json({ message: `Type change ${action}d`, request: result });
     } catch (error: any) {
-        console.error('Respond type change error:', error);
+        logger.error({ error, userId: (req as any).user?.id }, 'Respond type change error:');
         res.status(500).json({ error: error.message });
     }
 });
