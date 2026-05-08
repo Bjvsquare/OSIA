@@ -145,14 +145,19 @@ export const useTwinStore = create<TwinStore>((set, get) => ({
       if (response.ok) {
         const data = await response.json();
         if (data?.avatar) {
+          // Always override stored render settings with latest defaults
+          const avatar = {
+            ...data.avatar,
+            renderSettings: { ...DEFAULT_RENDER_SETTINGS },
+          };
           set((s) => ({
             state: {
               ...s.state,
-              avatar: data.avatar,
+              avatar,
               status: 'face_ready',
             },
           }));
-          console.log('[TwinStore] Loaded persisted avatar');
+          console.log('[TwinStore] Loaded persisted avatar (render settings refreshed)');
         }
       }
     } catch (error) {
