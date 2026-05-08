@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { ChevronDown, Home, LogOut, Menu, Settings, Share2, Sparkles, User, Users, X, Zap, Shield, RefreshCw } from 'lucide-react';
+import { ChevronDown, Home, LogOut, Menu, MessageCircle, Settings, Share2, Sparkles, User, Users, X, Zap, Shield, RefreshCw } from 'lucide-react';
 import { resolveAvatarUrl } from '../../utils/resolveAvatarUrl';
 import { useAuth } from '../../features/auth/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { KYCBanner } from '../kyc/KYCBanner';
+import { TwinChatFAB } from '../../features/twin/components/TwinChatFAB';
 
 export function AppLayout() {
     const location = useLocation();
@@ -43,6 +44,7 @@ export function AppLayout() {
     // Build nav items dynamically
     const navItems = [
         { name: 'Home', path: '/home', icon: Home, tourId: 'nav-home', matchPaths: ['/home'] },
+        { name: 'Twin', path: '/twin-face', icon: MessageCircle, tourId: 'nav-twin', matchPaths: ['/twin-face'] },
         { name: 'Vision', path: '/vision', icon: Zap, tourId: 'nav-vision', matchPaths: ['/vision'] },
         { name: 'Insights', path: '/thesis', icon: Sparkles, tourId: 'nav-insights', matchPaths: ['/thesis', '/patterns'] },
         { name: 'Connect', path: '/connect', icon: Share2, tourId: 'nav-connect', matchPaths: ['/connect'] },
@@ -219,6 +221,9 @@ export function AppLayout() {
                     <Outlet />
                 </div>
             </main>
+
+            {/* Floating Twin Chat */}
+            <TwinChatFAB />
         </div>
     );
 }

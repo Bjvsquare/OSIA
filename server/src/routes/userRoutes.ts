@@ -201,5 +201,44 @@ router.post('/rituals', authMiddleware, async (req: any, res: any) => {
     }
 });
 
+// ===== Twin Avatar Persistence =====
+
+router.put('/twin-avatar', authMiddleware, async (req: any, res: any) => {
+    try {
+        const userId = req.user.id || req.user.userId;
+        const { avatar } = req.body;
+
+        if (!avatar) {
+            return res.status(400).json({ error: 'No avatar data provided' });
+        }
+
+        await userService.saveTwinAvatar(userId, avatar);
+
+        await auditLogger.log({
+            userId,
+            username: req.user.username,
+            action: 'save_twin_avatar',
+            status: 'success'
+        });
+
+        res.json({ message: 'Twin avatar saved successfully' });
+    } catch (error: any) {
+        console.error('[TwinAvatar] Save error:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.get('/twin-avatar', authMiddleware, async (req: any, res: any) => {
+    try {
+        const userId = req.user.id || req.user.userId;
+        const avatar = await userService.getTwinAvatar(userId);
+
+        res.json({ avatar });
+    } catch (error: any) {
+        console.error('[TwinAvatar] Load error:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 
 export default router;

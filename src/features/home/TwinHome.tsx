@@ -7,7 +7,7 @@ import { useAuth } from '../auth/AuthContext';
 import { api } from '../../services/api';
 import {
     Sparkles, BarChart3, Users, Settings, Loader2,
-    X, Check, Target
+    X, Check, Target, MessageCircle
 } from 'lucide-react';
 import { LifeAreaRadar } from './components/LifeAreaRadar';
 import { ActiveFocusAreas } from './components/ActiveFocusAreas';
@@ -175,6 +175,7 @@ export function TwinHome() {
     // ─── Quick Actions ────────────────────────────────────
 
     const quickActions = [
+        { label: 'Talk to Twin', icon: MessageCircle, path: '/twin-face', color: 'from-cyan-500/20 to-cyan-500/5' },
         { label: 'View Insights', icon: BarChart3, path: '/insight/first', color: 'from-osia-teal-500/20 to-osia-teal-500/5' },
         { label: 'Team Setup', icon: Users, path: '/team', color: 'from-osia-purple-500/20 to-osia-purple-500/5' },
         { label: 'Settings', icon: Settings, path: '/settings', color: 'from-white/10 to-white/5' }

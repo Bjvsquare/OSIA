@@ -115,6 +115,7 @@ import lifeAreaRoutes from './routes/lifeAreaRoutes';
 import practiceRoutes from './routes/practiceRoutes';
 import notificationRoutes from './routes/notificationRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
+import twinRoutes from './routes/twinRoutes';
 import { pushNotificationService } from './services/PushNotificationService';
 
 app.use('/api/auth', authRoutes);
@@ -144,6 +145,7 @@ app.use('/api/life-areas', lifeAreaRoutes);
 app.use('/api/practice', practiceRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/twin', twinRoutes);
 
 // Start push notification scheduler
 pushNotificationService.startScheduler();

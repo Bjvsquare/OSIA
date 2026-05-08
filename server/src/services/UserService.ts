@@ -375,6 +375,29 @@ export class UserService {
 
         await db.saveCollection('users', users);
     }
+
+    // ===== Twin Avatar Methods =====
+
+    async saveTwinAvatar(userId: string, avatarData: any): Promise<void> {
+        const users = await db.getCollection<any>('users');
+        const userIndex = users.findIndex(u => u.id === userId);
+
+        if (userIndex === -1) throw new Error('User not found');
+
+        users[userIndex].twinAvatar = avatarData;
+        users[userIndex].twinAvatarUpdatedAt = new Date().toISOString();
+        await db.saveCollection('users', users);
+        console.log(`[UserService] Twin avatar saved for user ${userId}`);
+    }
+
+    async getTwinAvatar(userId: string): Promise<any | null> {
+        const users = await db.getCollection<any>('users');
+        const user = users.find(u => u.id === userId);
+
+        if (!user) throw new Error('User not found');
+
+        return user.twinAvatar || null;
+    }
 }
 
 export const userService = new UserService();

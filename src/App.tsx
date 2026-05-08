@@ -46,6 +46,7 @@ import { TeamPage } from './features/team/TeamPage';
 import { JourneyPage } from './features/journey/JourneyPage';
 import { LayerLabPage } from './features/lab/LayerLabPage';
 import { HighFidVizPage } from './features/lab/HighFidVizPage';
+import { TwinFacePage } from './features/twin/TwinFacePage';
 import { ThesisPage } from './features/thesis/ThesisPage';
 import { InsightsHubPage } from './features/insights/InsightsHubPage';
 import { ConnectorsPage } from './features/connectors/ConnectorsPage';
@@ -155,6 +156,7 @@ function App() {
                 {/* Main App - Gated by ProtectedRoute (requires onboarding) */}
                 <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
                   <Route path="/home" element={<TwinHome />} />
+                  <Route path="/twin-face" element={<TwinFacePage />} />
                   <Route path="/vision" element={<OsiaPage />} />
                   <Route path="/voice-test" element={<VoiceTestPage />} />
                   <Route path="/voice-minimal" element={<RealtimeMinimal />} />
