@@ -52,7 +52,7 @@ const fragmentShader = `
     
     float alpha = 1.0 - smoothstep(0.2, 0.5, dist);
     float core = 1.0 - smoothstep(0.0, 0.15, dist);
-    vec3 color = vColor + core * 0.3;
+    vec3 color = vColor + core * 0.1;
     
     alpha *= (1.0 + vIsContour * 0.4);
     color += vIsContour * vec3(0.1, 0.05, 0.0);
@@ -138,7 +138,7 @@ export function FacePointCloud({ faceMesh, baseSize = 2.5, mouthOpenness = 0 }: 
         uniforms={uniforms}
         transparent
         depthWrite={false}
-        blending={THREE.AdditiveBlending}
+        blending={THREE.NormalBlending}
       />
     </points>
   );

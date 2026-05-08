@@ -56,11 +56,11 @@ export interface TwinRenderSettings {
 export const DEFAULT_RENDER_SETTINGS: TwinRenderSettings = {
   pointSize: 2.5,
   connectionOpacity: 0.2,
-  glowIntensity: 1.2,
+  glowIntensity: 0.6,
   rotationSpeed: 0.15,
   breathingAmplitude: 0.02,
-  bloomStrength: 0.4,
-  bloomThreshold: 0.6,
+  bloomStrength: 0.15,
+  bloomThreshold: 0.85,
 };
 
 /** Complete twin avatar data (persisted to server) */
