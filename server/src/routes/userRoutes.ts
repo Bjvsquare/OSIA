@@ -141,6 +141,26 @@ router.post('/snapshot', authMiddleware, async (req: any, res: any) => {
     }
 });
 
+router.post('/complete-onboarding', authMiddleware, async (req: any, res: any) => {
+    try {
+        const userId = req.user.id || req.user.userId;
+        await userService.markOnboardingComplete(userId);
+
+        await auditLogger.log({
+            userId,
+            username: req.user.username,
+            action: 'complete_onboarding',
+            status: 'success',
+            details: { source: 'visual_emotion_picker' }
+        });
+
+        res.json({ message: 'Onboarding completed successfully', success: true });
+    } catch (error: any) {
+        console.error('Complete onboarding error:', error);
+        res.status(500).json({ error: error.message || 'Failed to complete onboarding' });
+    }
+});
+
 router.post('/request-deletion', authMiddleware, async (req: any, res: any) => {
     try {
         const userId = req.user.id || req.user.userId;

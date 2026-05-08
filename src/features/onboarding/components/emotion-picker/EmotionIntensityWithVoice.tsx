@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useOnboarding } from '../context/OnboardingContext';
+import { useOnboarding } from '../../context/OnboardingContext';
+import { useAuth } from '../../../auth/AuthContext';
 import { emotionHierarchy } from './emotionHierarchy';
 import { PsychologicalState, SubEmotion } from './types';
 import { slideInFromBottom } from './animationVariants';
@@ -22,6 +23,7 @@ export const EmotionIntensityWithVoice: React.FC<EmotionIntensityWithVoiceProps>
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { dispatch } = useOnboarding();
+  const { refreshProfile, auth } = useAuth();
   const [intensity, setIntensity] = useState(50);
   const [context, setContext] = useState('');
   const [isRecording, setIsRecording] = useState(false);
@@ -140,11 +142,19 @@ export const EmotionIntensityWithVoice: React.FC<EmotionIntensityWithVoiceProps>
       context
     });
 
-    // Call API to save check-in
+    const token = auth.token;
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     try {
-      const response = await fetch('/api/check-ins/quick', {
+      // Save check-in
+      const checkInResponse = await fetch('/api/check-ins/quick', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           emotion: emotioniId,
           energy_level: intensity,
@@ -152,21 +162,36 @@ export const EmotionIntensityWithVoice: React.FC<EmotionIntensityWithVoiceProps>
         })
       });
 
-      if (response.ok) {
-        // Mark onboarding as completed
-        dispatch({
-          type: 'COMPLETE_STAGE',
-          payload: { stageId: 'INITIAL_CHECK_IN' }
-        });
-
-        // Navigate to home
-        navigate('/home');
-      } else {
-        alert('Failed to save check-in. Please try again.');
+      if (!checkInResponse.ok) {
+        // Don't block user - log and continue
+        console.warn('Check-in save failed, continuing anyway');
       }
+
+      // Mark onboarding complete on server
+      try {
+        await fetch('/api/users/complete-onboarding', {
+          method: 'POST',
+          headers
+        });
+      } catch (err) {
+        console.warn('Could not mark onboarding complete:', err);
+      }
+
+      // Mark onboarding as completed locally
+      dispatch({
+        type: 'COMPLETE_STAGE',
+        payload: { stageId: 'INITIAL_CHECK_IN' }
+      });
+
+      // Refresh auth profile to pick up onboardingCompleted flag
+      await refreshProfile();
+
+      // Navigate to home
+      navigate('/home');
     } catch (error) {
       console.error('Error saving check-in:', error);
-      alert('Error saving check-in. Please try again.');
+      // Even on error, allow user to proceed - don't block the flow
+      navigate('/home');
     }
   };
 

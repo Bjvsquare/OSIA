@@ -147,19 +147,15 @@ function App() {
                 <Route path="/" element={<FoundingCircleLanding />} />
 
                 {/* Visual Onboarding Flow (MVP) - No AppLayout, full screen */}
-                <Route element={<OnboardingGuard />}>
-                  <Route path="/welcome" element={<VisualWelcomeScreen />} />
-                  <Route path="/onboarding/emotion/level1" element={<EmotionPickerFlow />} />
-                  <Route path="/onboarding/emotion/level2" element={<EmotionPickerFlow />} />
-                  <Route path="/onboarding/emotion/level3" element={<EmotionPickerFlow />} />
-                </Route>
+                <Route path="/welcome" element={<OnboardingGuard><VisualWelcomeScreen /></OnboardingGuard>} />
+                <Route path="/onboarding/emotion/level1" element={<OnboardingGuard><EmotionPickerFlow /></OnboardingGuard>} />
+                <Route path="/onboarding/emotion/level2" element={<OnboardingGuard><EmotionPickerFlow /></OnboardingGuard>} />
+                <Route path="/onboarding/emotion/level3" element={<OnboardingGuard><EmotionPickerFlow /></OnboardingGuard>} />
 
-                {/* Legacy Onboarding Flow - Gated by OnboardingGuard */}
-                <Route element={<OnboardingGuard><AppLayout /></OnboardingGuard>}>
-                  <Route path="/onboarding" element={<OnboardingFlow />} />
-                  <Route path="/onboarding/q/:questionId" element={<OnboardingFlow />} />
-                  <Route path="/insight/first" element={<OnboardingFlow />} />
-                </Route>
+                {/* Legacy Onboarding - Redirected to New Visual Flow */}
+                <Route path="/onboarding" element={<Navigate to="/welcome" replace />} />
+                <Route path="/onboarding/q/:questionId" element={<Navigate to="/welcome" replace />} />
+                <Route path="/insight/first" element={<Navigate to="/welcome" replace />} />
 
                 {/* Main App - Gated by ProtectedRoute (requires onboarding) */}
                 <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
